@@ -3,8 +3,8 @@ use crate::*;
 use bevy::window::PrimaryWindow;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaGuiLabelPlugin;
-impl Plugin for LuxanaGuiLabelPlugin {
+pub struct TankGuiLabelPlugin;
+impl Plugin for TankGuiLabelPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<GuiLabel>();
     }

@@ -3,8 +3,8 @@ use crate::*;
 use bevy::window::PrimaryWindow;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaPlayerPlugin;
-impl Plugin for LuxanaPlayerPlugin {
+pub struct TankPlayerPlugin;
+impl Plugin for TankPlayerPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<PrimaryPlayer>()
             .register_type::<Player>()

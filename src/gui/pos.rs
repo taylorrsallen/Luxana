@@ -1,8 +1,8 @@
 use crate::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaGuiPosPlugin;
-impl Plugin for LuxanaGuiPosPlugin {
+pub struct TankGuiPosPlugin;
+impl Plugin for TankGuiPosPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<GuiPos>()
             .register_type::<GuiVal>()

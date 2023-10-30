@@ -3,8 +3,8 @@ use crate::*;
 use bevy::utils::FloatOrd;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaAIPlugin;
-impl Plugin for LuxanaAIPlugin {
+pub struct TankAIPlugin;
+impl Plugin for TankAIPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<BasicAI>()
             .add_systems(Update, (

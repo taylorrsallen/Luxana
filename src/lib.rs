@@ -40,11 +40,11 @@ pub const ASSET_DATA_DIR: &'static str = "assets/data";
 pub const SAVE_DATA_DIR: &'static str = "data/save";
 pub const APP_DATA_DIR: &'static str = "data/app";
 
-pub struct LuxanaPlugin {
+pub struct TankPlugin {
     pub game_name: String,
 }
 
-impl Plugin for LuxanaPlugin {
+impl Plugin for TankPlugin {
     fn build(&self, app: &mut App) {
         // Bevy Defaults
         app.insert_resource(Msaa::Off)
@@ -77,20 +77,20 @@ impl Plugin for LuxanaPlugin {
             // Bevy Physics
             .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
 
-            // Luxana Plugins
+            // Tank Plugins
             .add_plugins((
-                LuxanaAIPlugin,
-                LuxanaAudioPlugin,
-                LuxanaCameraPlugin,
-                LuxanaCharacterPlugin,
-                LuxanaInputPlugin,
-                LuxanaGuiPlugin,
+                TankAIPlugin,
+                TankAudioPlugin,
+                TankCameraPlugin,
+                TankCharacterPlugin,
+                TankInputPlugin,
+                TankGuiPlugin,
                 // networking
-                LuxanaPackagesPlugin,
-                LuxanaPlayerPlugin,
-                LuxanaStatePlugin,
-                LuxanaUtilPlugin,
-                LuxanaVoxelPlugin,
+                TankPackagesPlugin,
+                TankPlayerPlugin,
+                TankStatePlugin,
+                TankUtilPlugin,
+                TankVoxelPlugin,
             ));
     }
 }

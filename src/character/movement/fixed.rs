@@ -1,8 +1,8 @@
 use crate::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaFixedMovementPlugin;
-impl Plugin for LuxanaFixedMovementPlugin {
+pub struct TankFixedMovementPlugin;
+impl Plugin for TankFixedMovementPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<FixedMover>()
             .add_systems(Update, sys_update_fixed_mover);

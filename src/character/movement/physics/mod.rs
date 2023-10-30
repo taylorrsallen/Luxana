@@ -6,12 +6,12 @@ mod thrust;
 pub use thrust::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaPhysicsMovementPlugin;
-impl Plugin for LuxanaPhysicsMovementPlugin {
+pub struct TankPhysicsMovementPlugin;
+impl Plugin for TankPhysicsMovementPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
-            LuxanaSpringPhysicsMovementPlugin,
-            LuxanaThrustPhysicsMovementPlugin,
+            TankSpringPhysicsMovementPlugin,
+            TankThrustPhysicsMovementPlugin,
         ));
     }
 }

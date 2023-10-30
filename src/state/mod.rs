@@ -1,8 +1,8 @@
 use crate::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaStatePlugin;
-impl Plugin for LuxanaStatePlugin {
+pub struct TankStatePlugin;
+impl Plugin for TankStatePlugin {
     fn build(&self, app: &mut App) {
         app.add_state::<AppState>();
     }

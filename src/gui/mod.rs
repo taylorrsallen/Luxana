@@ -21,20 +21,20 @@ mod pos;
 pub use pos::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaGuiPlugin;
-impl Plugin for LuxanaGuiPlugin {
+pub struct TankGuiPlugin;
+impl Plugin for TankGuiPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<GuiRoot>()
             .register_type::<GuiViewport>()
             .add_plugins((
-                LuxanaGuiButtonPlugin,
-                LuxanaGuiCursorPlugin,
-                LuxanaGuiColorPlugin,
-                LuxanaGuiFollowPlugin,
-                LuxanaGuiHitboxPlugin,
-                LuxanaGuiLabelPlugin,
-                LuxanaGuiMenuPlugin,
-                LuxanaGuiPosPlugin,
+                TankGuiButtonPlugin,
+                TankGuiCursorPlugin,
+                TankGuiColorPlugin,
+                TankGuiFollowPlugin,
+                TankGuiHitboxPlugin,
+                TankGuiLabelPlugin,
+                TankGuiMenuPlugin,
+                TankGuiPosPlugin,
             ))
             .add_systems(OnEnter(AppState::EngineInit), onsys_init_egui_fonts)
             .add_systems(PreUpdate, (

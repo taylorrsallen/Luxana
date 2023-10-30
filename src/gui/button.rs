@@ -3,8 +3,8 @@ use crate::*;
 use bevy::{window::PrimaryWindow, render::view::RenderLayers};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaGuiButtonPlugin;
-impl Plugin for LuxanaGuiButtonPlugin {
+pub struct TankGuiButtonPlugin;
+impl Plugin for TankGuiButtonPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<GuiButtonState>()
             .register_type::<GuiButtonAction>()

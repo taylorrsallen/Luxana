@@ -3,8 +3,8 @@ use crate::*;
 pub use bevy_kira_audio::prelude::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaAudioPlugin;
-impl Plugin for LuxanaAudioPlugin {
+pub struct TankAudioPlugin;
+impl Plugin for TankAudioPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
                 bevy_kira_audio::AudioPlugin,

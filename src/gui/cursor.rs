@@ -1,8 +1,8 @@
 use crate::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaGuiCursorPlugin;
-impl Plugin for LuxanaGuiCursorPlugin {
+pub struct TankGuiCursorPlugin;
+impl Plugin for TankGuiCursorPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<GuiCursor>();
     }

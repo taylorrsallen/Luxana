@@ -30,8 +30,8 @@ pub const GRID_2D_DIAGONALS: [IVec2; 4] = [
 ];
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaVoxelPlugin;
-impl Plugin for LuxanaVoxelPlugin {
+pub struct TankVoxelPlugin;
+impl Plugin for TankVoxelPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(VoxelFlatPlugin);
     }

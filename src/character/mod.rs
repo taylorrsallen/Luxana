@@ -6,12 +6,12 @@ mod turret;
 pub use turret::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaCharacterPlugin;
-impl Plugin for LuxanaCharacterPlugin {
+pub struct TankCharacterPlugin;
+impl Plugin for TankCharacterPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
-                LuxanaCharacterMovementPlugin,
-                LuxanaCharacterTurretPlugin,
+                TankCharacterMovementPlugin,
+                TankCharacterTurretPlugin,
             ));   
     }
 }

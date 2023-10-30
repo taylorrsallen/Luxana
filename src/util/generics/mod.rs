@@ -10,16 +10,16 @@ mod validate;
 pub use validate::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaUtilGenericsPlugin;
-impl Plugin for LuxanaUtilGenericsPlugin {
+pub struct TankUtilGenericsPlugin;
+impl Plugin for TankUtilGenericsPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<LevelOfDetail>()
             .register_type::<RngSeed>()
             .register_type::<Id>()
             .add_plugins((
-                LuxanaAnimationPlugin,
-                LuxanaRayPlugin,
-                LuxanaLifetimePlugin,
+                TankAnimationPlugin,
+                TankRayPlugin,
+                TankLifetimePlugin,
             ));
     }
 }

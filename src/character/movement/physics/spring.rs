@@ -1,8 +1,8 @@
 use crate::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaSpringPhysicsMovementPlugin;
-impl Plugin for LuxanaSpringPhysicsMovementPlugin {
+pub struct TankSpringPhysicsMovementPlugin;
+impl Plugin for TankSpringPhysicsMovementPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<SpringPhysicsMover>()
             .add_systems(Update, (

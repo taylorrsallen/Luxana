@@ -23,11 +23,11 @@ pub use thread::*;
 mod bundle;
 pub use bundle::*;
 
-pub struct LuxanaUtilPlugin;
-impl Plugin for LuxanaUtilPlugin {
+pub struct TankUtilPlugin;
+impl Plugin for TankUtilPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
-            LuxanaUtilGenericsPlugin,
+            TankUtilGenericsPlugin,
         ));
     }
 }

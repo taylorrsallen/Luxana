@@ -14,8 +14,8 @@ mod asset;
 pub use asset::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaAudioPlugin;
-impl Plugin for LuxanaAudioPlugin {
+pub struct TankAudioPlugin;
+impl Plugin for TankAudioPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
                 AudioAssetPlugin,

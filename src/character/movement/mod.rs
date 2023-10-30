@@ -8,17 +8,17 @@ mod physics;
 pub use physics::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaCharacterMovementPlugin;
-impl Plugin for LuxanaCharacterMovementPlugin {
+pub struct TankCharacterMovementPlugin;
+impl Plugin for TankCharacterMovementPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<MoveInput2d>()
             .register_type::<MoveInput3d>()
             .register_type::<RotationInput2d>()
             .register_type::<RotationInput3d>()
             .add_plugins((
-                LuxanaFixedMovementPlugin,
-                LuxanaGridMovementPlugin,
-                LuxanaPhysicsMovementPlugin,
+                TankFixedMovementPlugin,
+                TankGridMovementPlugin,
+                TankPhysicsMovementPlugin,
             ));
     }
 }

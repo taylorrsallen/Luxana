@@ -3,8 +3,8 @@ use crate::*;
 use bevy::{utils::{HashSet, petgraph::Graph}, window::PrimaryWindow};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaGuiHitboxPlugin;
-impl Plugin for LuxanaGuiHitboxPlugin {
+pub struct TankGuiHitboxPlugin;
+impl Plugin for TankGuiHitboxPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<GuiInteractableCollider>()
             .register_type::<GuiCollidingEntities>()

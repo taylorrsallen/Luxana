@@ -1,8 +1,8 @@
 use crate::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaThrustPhysicsMovementPlugin;
-impl Plugin for LuxanaThrustPhysicsMovementPlugin {
+pub struct TankThrustPhysicsMovementPlugin;
+impl Plugin for TankThrustPhysicsMovementPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<ThrustMover3d>()
             .add_systems(Update, sys_update_thrust_mover_3d);

@@ -12,8 +12,8 @@ mod zoom;
 pub use zoom::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaCameraPlugin;
-impl Plugin for LuxanaCameraPlugin {
+pub struct TankCameraPlugin;
+impl Plugin for TankCameraPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<TransformTargetRef>()
             .register_type::<CameraRig>()

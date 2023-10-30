@@ -7,8 +7,8 @@ mod package_type;
 pub use package_type::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaPackagesPlugin;
-impl Plugin for LuxanaPackagesPlugin {
+pub struct TankPackagesPlugin;
+impl Plugin for TankPackagesPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PreStartup, stsys_init_packages)
             .add_systems(Update, sys_update_load_state.run_if(in_state(AppState::EngineInit)));

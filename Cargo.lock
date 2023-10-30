@@ -2855,33 +2855,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5e6163cb8c49088c2c36f57875e58ccd8c87c7427f7fbd50ea6710b2f3f2e8f"
 
 [[package]]
-name = "luxana"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "bevy-inspector-egui",
- "bevy_egui",
- "bevy_hanabi",
- "bevy_kira_audio",
- "bevy_polyline",
- "bevy_quinnet",
- "bevy_rapier3d",
- "big-brain",
- "bincode",
- "image",
- "noise",
- "num",
- "pathfinding",
- "rand 0.8.5",
- "rand_pcg",
- "rand_seeder",
- "ron",
- "serde",
- "tokio",
- "winit 0.29.2",
-]
-
-[[package]]
 name = "mach2"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4640,6 +4613,33 @@ dependencies = [
  "grid",
  "num-traits",
  "slotmap",
+]
+
+[[package]]
+name = "tank"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy-inspector-egui",
+ "bevy_egui",
+ "bevy_hanabi",
+ "bevy_kira_audio",
+ "bevy_polyline",
+ "bevy_quinnet",
+ "bevy_rapier3d",
+ "big-brain",
+ "bincode",
+ "image",
+ "noise",
+ "num",
+ "pathfinding",
+ "rand 0.8.5",
+ "rand_pcg",
+ "rand_seeder",
+ "ron",
+ "serde",
+ "tokio",
+ "winit 0.29.2",
 ]
 
 [[package]]

@@ -4,8 +4,8 @@ use bevy::window::PrimaryWindow;
 use bevy_egui::egui::{RichText, FontId, Align2, Color32, TextStyle, FontFamily};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaGuiFollowPlugin;
-impl Plugin for LuxanaGuiFollowPlugin {
+pub struct TankGuiFollowPlugin;
+impl Plugin for TankGuiFollowPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<GuiFollow>()
             .add_systems(Update, sys_update_gui_follow);

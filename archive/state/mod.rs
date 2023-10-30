@@ -6,8 +6,8 @@ mod dev;
 pub use dev::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaStatePlugin;
-impl Plugin for LuxanaStatePlugin {
+pub struct TankStatePlugin;
+impl Plugin for TankStatePlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<AppDebugSettings>()
             .add_state::<AppState>()

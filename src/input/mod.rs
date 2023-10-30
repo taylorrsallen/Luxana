@@ -22,8 +22,8 @@ pub const GAMEPAD_AXES: u32 = 6;
 pub const GAMEPAD_VARIABLE_AXES: u32 = 16;
 
 #[derive(Default)]
-pub struct LuxanaInputPlugin;
-impl Plugin for LuxanaInputPlugin {
+pub struct TankInputPlugin;
+impl Plugin for TankInputPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PreUpdate, (
                 sys_clear_button_input,

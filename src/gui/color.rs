@@ -1,8 +1,8 @@
 use crate::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaGuiColorPlugin;
-impl Plugin for LuxanaGuiColorPlugin {
+pub struct TankGuiColorPlugin;
+impl Plugin for TankGuiColorPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<GuiColor>()
             .add_systems(Update, (

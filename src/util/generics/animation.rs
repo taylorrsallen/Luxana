@@ -1,8 +1,8 @@
 use crate::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct LuxanaAnimationPlugin;
-impl Plugin for LuxanaAnimationPlugin {
+pub struct TankAnimationPlugin;
+impl Plugin for TankAnimationPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<LinearColorAnimation>()
             .add_systems(Update, sys_update_color_animation);
