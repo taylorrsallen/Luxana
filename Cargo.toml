@@ -1,0 +1,56 @@
+[package]
+name = "luxana"
+version = "0.1.0"
+edition = "2021"
+
+[profile.dev]
+opt-level = 2
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[dependencies]
+bevy = { version = "0.11", features = ["serialize"] }
+
+winit = { version = "0.29" }
+image = { version = "0.24" }
+
+# Physics
+bevy_rapier3d = { version = "0.22", features = ["debug-render", "serde-serialize"] }
+
+# Audio
+bevy_kira_audio = "0.17.0"
+
+# Rendering
+bevy_hanabi = "0.7" # (Currently unused)
+bevy_polyline = "0.7" # (Currently unused)
+
+# UI
+bevy_egui = "0.22.0"
+
+# Debug
+bevy-inspector-egui = "0.20.0"
+
+# Util
+num = "0.4"
+
+# Serialization
+serde = "1.0"
+ron = "0.8"
+bincode = "1.3"
+
+# RNG
+rand = "0.8.5"
+rand_seeder = "0.2.3"
+rand_pcg = "0.3.1"
+noise = "0.8.2"
+
+# Pathing
+pathfinding = "4.3" # (Currently unused)
+
+# AI
+big-brain = "0.18.0" # (Currently unused)
+
+# Networking
+bevy_quinnet = "0.5.0"
+tokio = "1.33"
