@@ -47,9 +47,11 @@ pub enum EmitterTrigger {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 fn sys_update_emitters(
-    emitter_query: Query<(&Emitter, &EmitterCooldown, &EmitterTrigger)>,
+    mut emitter_query: Query<(Entity, &Emitter, &mut EmitterCooldown, &EmitterTrigger)>,
     emitter_sound_query: Query<&EmitterSound>,
     time: Res<Time>,
 ) {
-
+    for (entity, emitter, mut emitter_cd, emitter_trigger) in emitter_query.iter_mut() {
+        
+    }
 }
