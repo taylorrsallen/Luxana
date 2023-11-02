@@ -4,7 +4,7 @@
 use std::marker::PhantomData;
 
 pub use bevy::prelude::*;
-use bevy::{render::{RenderPlugin, settings::{WgpuSettings, WgpuFeatures}}, pbr::wireframe::WireframePlugin};
+use bevy::{render::{RenderPlugin, settings::{WgpuSettings, WgpuFeatures}}, pbr::wireframe::WireframePlugin, winit::WinitWindows, window::PrimaryWindow};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 pub use bevy_rapier3d::prelude::*;
@@ -16,8 +16,6 @@ mod audio;
 pub use audio::*;
 mod camera;
 pub use camera::*;
-mod character;
-pub use character::*;
 mod input;
 pub use input::*;
 mod gui;
@@ -30,10 +28,13 @@ mod player;
 pub use player::*;
 mod state;
 pub use state::*;
+mod thing;
+pub use thing::*;
 mod util;
 pub use util::*;
 mod voxel;
 pub use voxel::*;
+use winit::window::Icon;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 pub const ASSET_DATA_DIR: &'static str = "assets/data";
@@ -67,6 +68,7 @@ impl Plugin for TankPlugin {
                 .set(ImagePlugin::default_nearest())
             )
             .add_plugins(WireframePlugin)
+            .add_systems(Startup, sys_init_window_icon)
             
             // Bevy Dev + Debug
             .add_plugins(WorldInspectorPlugin::default())
@@ -79,10 +81,10 @@ impl Plugin for TankPlugin {
 
             // Tank Plugins
             .add_plugins((
+                TankActorPlugin,
                 TankAIPlugin,
                 TankAudioPlugin,
                 TankCameraPlugin,
-                TankCharacterPlugin,
                 TankInputPlugin,
                 TankGuiPlugin,
                 // networking
@@ -93,4 +95,23 @@ impl Plugin for TankPlugin {
                 TankVoxelPlugin,
             ));
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+fn sys_init_window_icon(
+    primary_window_query: Query<Entity, With<PrimaryWindow>>,
+    windows: NonSend<WinitWindows>,
+) {
+    let winit_window = if let Ok(entity) = primary_window_query.get_single() { windows.get_window(entity).unwrap() } else { panic!("Help! No Primary Window!") };
+    
+    let (icon_rgba, icon_width, icon_height) = {
+        let image = image::open("assets/images/icon.png").expect("Failed to open icon path").into_rgba8();
+        let (width, height) = image.dimensions();
+        let rgba = image.into_raw();
+        (rgba, width, height)
+    };
+
+    let icon = Icon::from_rgba(icon_rgba, icon_width, icon_height).unwrap();
+
+    winit_window.set_window_icon(Some(icon));
 }

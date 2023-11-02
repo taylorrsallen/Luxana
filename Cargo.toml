@@ -12,7 +12,7 @@ opt-level = 3
 [dependencies]
 bevy = { version = "0.11", features = ["serialize"] }
 
-winit = { version = "0.29" }
+winit = { version = "0.28.7" }
 image = { version = "0.24" }
 
 # Physics

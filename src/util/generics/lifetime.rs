@@ -1,8 +1,8 @@
 use crate::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct TankLifetimePlugin;
-impl Plugin for TankLifetimePlugin {
+pub struct TankUtilGenericsLifetimePlugin;
+impl Plugin for TankUtilGenericsLifetimePlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Lifetime>()
             .add_systems(Update, sys_update_lifetime);

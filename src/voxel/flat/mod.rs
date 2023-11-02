@@ -23,8 +23,8 @@ pub const CHUNK_3D_MASK: i32 = CHUNK_3D_DIM as i32 - 1;
 
 pub const MAX_WORLD_LOG2DIM: u8 = 8;
 
-pub struct VoxelFlatPlugin;
-impl Plugin for VoxelFlatPlugin {
+pub struct TankVoxelFlatPlugin;
+impl Plugin for TankVoxelFlatPlugin {
     fn build(&self, app: &mut App) {
         
     }

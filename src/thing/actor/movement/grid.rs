@@ -1,8 +1,8 @@
 use crate::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct TankGridMovementPlugin;
-impl Plugin for TankGridMovementPlugin {
+pub struct TankActorMovementGridPlugin;
+impl Plugin for TankActorMovementGridPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<GridMover>()
             .add_systems(Update, sys_update_grid_mover);

@@ -6,8 +6,8 @@ mod thrust;
 pub use thrust::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct TankPhysicsMovementPlugin;
-impl Plugin for TankPhysicsMovementPlugin {
+pub struct TankActorMovementPhysicsPlugin;
+impl Plugin for TankActorMovementPhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
             TankSpringPhysicsMovementPlugin,

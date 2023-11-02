@@ -1,8 +1,8 @@
 use crate::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct TankRayPlugin;
-impl Plugin for TankRayPlugin {
+pub struct TankUtilGenericsRayPlugin;
+impl Plugin for TankUtilGenericsRayPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, (
                 sys_update_global_direction_ray,

@@ -17,9 +17,9 @@ impl Plugin for TankUtilGenericsPlugin {
             .register_type::<RngSeed>()
             .register_type::<Id>()
             .add_plugins((
-                TankAnimationPlugin,
-                TankRayPlugin,
-                TankLifetimePlugin,
+                TankUtilGenericsAnimationPlugin,
+                TankUtilGenericsRayPlugin,
+                TankUtilGenericsLifetimePlugin,
             ));
     }
 }

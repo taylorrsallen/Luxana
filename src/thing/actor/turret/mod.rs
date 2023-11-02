@@ -4,8 +4,8 @@ use bevy_rapier3d::na::ComplexField;
 use crate::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct TankCharacterTurretPlugin;
-impl Plugin for TankCharacterTurretPlugin {
+pub struct TankActorTurretPlugin;
+impl Plugin for TankActorTurretPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<TurretYawPivot>()
             .register_type::<TurretPitchPivot>()
