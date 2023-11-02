@@ -43,7 +43,11 @@ impl SpringPhysicsMoverBundle {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Uses a downward raycast to create a spring force which will float attached Thing at ride_height above the ground.
+/// 
+/// Uses spring rotation to rotate the Thing towards the direction of movement, supplied by [MoveInput3d].
 #[derive(Component, Reflect)]
+#[reflect(Component)]
 pub struct SpringPhysicsMover {
     speed: f32,
     max_acceleration: f32,

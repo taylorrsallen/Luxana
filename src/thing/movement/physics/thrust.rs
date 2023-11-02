@@ -20,6 +20,10 @@ pub struct ThrustMover3dBundle {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+/// A simplified movement model for a spaceship with multiple thrusters at various positions and angles.
+/// 
+/// TODO: Thrust & Torque strength will be calculated from sum of thruster positions and torque, and need to be
+/// updated if a thruster changes.
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct ThrustMover3d {

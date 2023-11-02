@@ -2,9 +2,18 @@
 #![allow(unused)]
 
 use std::marker::PhantomData;
+use winit::window::Icon;
 
 pub use bevy::prelude::*;
-use bevy::{render::{RenderPlugin, settings::{WgpuSettings, WgpuFeatures}}, pbr::wireframe::WireframePlugin, winit::WinitWindows, window::PrimaryWindow};
+use bevy::{
+    render::{
+        RenderPlugin,
+        settings::{WgpuSettings, WgpuFeatures}
+    },
+    pbr::wireframe::WireframePlugin,
+    winit::WinitWindows,
+    window::PrimaryWindow
+};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 pub use bevy_rapier3d::prelude::*;
@@ -34,22 +43,22 @@ mod util;
 pub use util::*;
 mod voxel;
 pub use voxel::*;
-use winit::window::Icon;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 pub const ASSET_DATA_DIR: &'static str = "assets/data";
 pub const SAVE_DATA_DIR: &'static str = "data/save";
 pub const APP_DATA_DIR: &'static str = "data/app";
 
+#[derive(Default)]
 pub struct TankPlugin {
     pub game_name: String,
+    pub msaa: Msaa,
 }
 
 impl Plugin for TankPlugin {
     fn build(&self, app: &mut App) {
         // Bevy Defaults
-        app.insert_resource(Msaa::Off)
-            .add_plugins(DefaultPlugins
+        app.add_plugins(DefaultPlugins
                 .set(WindowPlugin {
                     primary_window: Some(Window {
                         title: self.game_name.clone(),
@@ -67,30 +76,31 @@ impl Plugin for TankPlugin {
                 })
                 .set(ImagePlugin::default_nearest())
             )
-            .add_plugins(WireframePlugin)
             .add_systems(Startup, sys_init_window_icon)
+            .insert_resource(self.msaa)
             
-            // Bevy Dev + Debug
+            // Dev + Debug
+            .add_plugins(WireframePlugin)
             .add_plugins(WorldInspectorPlugin::default())
 
-            // Bevy UI
+            // UI
             // .add_plugins(EguiPlugin)
 
-            // Bevy Physics
+            // Physics
             .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
 
-            // Tank Plugins
+            // Tank
             .add_plugins((
-                TankActorPlugin,
                 TankAIPlugin,
                 TankAudioPlugin,
                 TankCameraPlugin,
                 TankInputPlugin,
                 TankGuiPlugin,
-                // networking
+                // TankNetworkingPlugin
                 TankPackagesPlugin,
                 TankPlayerPlugin,
                 TankStatePlugin,
+                TankThingPlugin,
                 TankUtilPlugin,
                 TankVoxelPlugin,
             ));
@@ -98,6 +108,7 @@ impl Plugin for TankPlugin {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Winit must be added separately in Cargo.toml AND be the same version as is used by Bevy for this to work.
 fn sys_init_window_icon(
     primary_window_query: Query<Entity, With<PrimaryWindow>>,
     windows: NonSend<WinitWindows>,
@@ -107,8 +118,7 @@ fn sys_init_window_icon(
     let (icon_rgba, icon_width, icon_height) = {
         let image = image::open("assets/images/icon.png").expect("Failed to open icon path").into_rgba8();
         let (width, height) = image.dimensions();
-        let rgba = image.into_raw();
-        (rgba, width, height)
+        (image.into_raw(), width, height)
     };
 
     let icon = Icon::from_rgba(icon_rgba, icon_width, icon_height).unwrap();
