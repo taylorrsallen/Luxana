@@ -8,8 +8,8 @@ mod physics;
 pub use physics::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct TankActorMovementPlugin;
-impl Plugin for TankActorMovementPlugin {
+pub struct TankThingMovementPlugin;
+impl Plugin for TankThingMovementPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<MoveInput2d>()
             .register_type::<MoveInput3d>()

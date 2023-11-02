@@ -1,0 +1,24 @@
+use crate::*;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+pub struct TankThingInteractorGrabberPlugin;
+impl Plugin for TankThingInteractorGrabberPlugin {
+    fn build(&self, app: &mut App) {
+        app.register_type::<Grabber>();
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#[derive(Reflect)]
+pub struct GrabInteraction {
+    entity: Entity,
+    /// From origin of grabbed entity.
+    offset: Vec3,
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#[derive(Component, Default, Reflect)]
+#[reflect(Component)]
+pub struct Grabber {
+    interaction: Option<GrabInteraction>,
+}

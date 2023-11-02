@@ -4,8 +4,8 @@ use bevy_rapier3d::na::ComplexField;
 use crate::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct TankActorTurretPlugin;
-impl Plugin for TankActorTurretPlugin {
+pub struct TankThingTurretPlugin;
+impl Plugin for TankThingTurretPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<TurretYawPivot>()
             .register_type::<TurretPitchPivot>()
@@ -54,14 +54,6 @@ pub struct TurretRange {
 #[reflect(Component)]
 pub struct TurretTarget {
     
-}
-
-#[derive(Component, Default, Reflect)]
-#[reflect(Component)]
-pub struct Health {
-    current: f32,
-    max: f32,
-    predicted: f32,
 }
 
 #[derive(Component, Default, Reflect)]
