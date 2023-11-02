@@ -15,7 +15,7 @@ impl Plugin for TankThingProjectilePlugin {
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
 pub struct PhysicsProjectile {
-    damage: f32,
+    pub damage: f32,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

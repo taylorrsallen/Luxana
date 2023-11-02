@@ -16,9 +16,9 @@ impl Plugin for TankThingMovementPlugin {
             .register_type::<RotationInput2d>()
             .register_type::<RotationInput3d>()
             .add_plugins((
-                TankActorMovementFixedPlugin,
-                TankActorMovementGridPlugin,
-                TankActorMovementPhysicsPlugin,
+                TankThingMovementFixedPlugin,
+                TankThingMovementGridPlugin,
+                TankThingMovementPhysicsPlugin,
             ));
     }
 }

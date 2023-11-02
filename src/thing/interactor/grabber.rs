@@ -11,12 +11,15 @@ impl Plugin for TankThingInteractorGrabberPlugin {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #[derive(Reflect)]
 pub struct GrabInteraction {
-    entity: Entity,
+    pub entity: Entity,
     /// From origin of grabbed entity.
-    offset: Vec3,
+    pub offset: Vec3,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+/// If you grab an equippable, it gets equipped. That means it doesn't drop when you release.
+/// 
+/// Because you can't grab and equip at the same time.
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
 pub struct Grabber {

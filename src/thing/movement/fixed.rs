@@ -1,8 +1,8 @@
 use crate::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct TankActorMovementFixedPlugin;
-impl Plugin for TankActorMovementFixedPlugin {
+pub struct TankThingMovementFixedPlugin;
+impl Plugin for TankThingMovementFixedPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<FixedMover>()
             .add_systems(Update, sys_update_fixed_mover);

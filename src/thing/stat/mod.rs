@@ -28,7 +28,7 @@ pub struct MaxHealth(pub f32);
 #[reflect(Component)]
 pub struct PredictedHealth(pub f32);
 
-/// Put this on any Thing you want to be destroyed if its [CurrentHealth] drops to 0.
+/// Put this on any Thing you want to die if its [CurrentHealth] drops to 0.
 /// 
 /// Dying will be marked true when the time comes. It's up to YOU to decide what that means.
 /// 
@@ -39,7 +39,7 @@ pub struct PredictedHealth(pub f32);
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
 pub struct Killable {
-    dying: bool,
+    pub dying: bool,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
