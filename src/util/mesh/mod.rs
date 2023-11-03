@@ -113,6 +113,52 @@ impl NormalsMeshData {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 pub struct MeshGen;
 impl MeshGen {
+    /// - data0: The heightmap being meshed
+    /// - data1: Right neighbor
+    /// - data2: Above neighbor
+    /// - data3: Right & Above neighbor
+    pub fn from_square_heightmap_with_neighbors(
+        data0: &[f32],
+        data1: &[f32],
+        data2: &[f32],
+        data3: &[f32],
+        dim: u32,
+    ) -> Mesh {
+        let mut mesh_data = MeshData::default();
+
+        for z in 0..dim { for x in 0..dim {
+            let i = z * dim + x;
+            mesh_data.verts.push([x as f32, data0[i as usize], z as f32]);
+            mesh_data.uvs.push([x as f32 / dim as f32, z as f32 / dim as f32]);
+        }}
+
+        for z in 0..dim-1 { for x in 0..dim-1 {
+            let i = z * dim + x;
+            mesh_data.add_triangle(i, i + dim, i + 1);
+            mesh_data.add_triangle(i + dim, i + dim + 1, i + 1);
+        }}
+
+        mesh_data.mesh()
+    }
+
+    pub fn from_square_heightmap(data: &[f32], dim: u32) -> Mesh {
+        let mut mesh_data = MeshData::default();
+
+        for z in 0..dim { for x in 0..dim {
+            let i = z * dim + x;
+            mesh_data.verts.push([x as f32, data[i as usize], z as f32]);
+            mesh_data.uvs.push([x as f32 / dim as f32, z as f32 / dim as f32]);
+        }}
+
+        for z in 0..dim-1 { for x in 0..dim-1 {
+            let i = z * dim + x;
+            mesh_data.add_triangle(i, i + dim, i + 1);
+            mesh_data.add_triangle(i + dim, i + dim + 1, i + 1);
+        }}
+
+        mesh_data.mesh()
+    }
+
     /// This only works for heightmaps that loop infinitely.
     pub fn from_flat_chunk_2d_height_tables<T: Default + NumCast + Clone + Copy + PartialEq + Eq + Sync + Send + 'static>(
         c0_all: &[T],

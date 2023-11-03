@@ -1,18 +1,19 @@
 use crate::*;
 
 use std::sync::{RwLock, Arc};
-use bevy::utils::{HashMap, HashSet};
+use bevy::{utils::{HashMap, HashSet}, pbr::wireframe::Wireframe};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 pub struct TankLevelHeightmapPlugin;
 impl Plugin for TankLevelHeightmapPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<HeightmapRootMesher>();
+        app.register_type::<HeightmapRootChanges>()
+            .register_type::<HeightmapRootMesher>()
+            .add_systems(PostUpdate, (
+                sys_update_heightmap_meshes,
+            ));
     }
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #[derive(Component)]
@@ -74,8 +75,7 @@ impl HeightmapRoot {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#[derive(Component, Reflect)]
-#[reflect(Component)]
+#[derive(Reflect)]
 pub struct HeightmapChunk {
     data: [f32; CHUNK_2D_SIZE],
 }
@@ -118,10 +118,30 @@ impl HeightmapChunk {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
-pub struct HeightmapRootChanges {
-    pub changed_keys: HashSet<IVec2>,
+pub struct HeightmapRootChanges(HashSet<IVec2>);
+
+impl HeightmapRootChanges {
+    pub fn mark_change(&mut self, coord: IVec2) {
+        let chunk_coord = coord & !CHUNK_2D_MASK;
+        self.0.insert(chunk_coord);
+
+        let local_coord = HeightmapChunk::local_coord_from_global_coord(coord);
+        if local_coord.x == 0 {
+            self.0.insert(IVec2::new(chunk_coord.x - CHUNK_2D_DIM as i32, chunk_coord.y));
+            if local_coord.y == 0 {
+                self.0.insert(IVec2::new(chunk_coord.x - CHUNK_2D_DIM as i32, chunk_coord.y - CHUNK_2D_DIM as i32));
+                self.0.insert(IVec2::new(chunk_coord.x, chunk_coord.y - CHUNK_2D_DIM as i32));
+            }
+        } else if local_coord.y == 0 {
+            self.0.insert(IVec2::new(chunk_coord.x, chunk_coord.y - CHUNK_2D_DIM as i32));
+        }
+    }
+
+    pub fn clear(&mut self) { self.0.clear() }
+    pub fn iter(&self) -> impl Iterator<Item = IVec2> + '_ { self.0.iter().copied() }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
 pub struct HeightmapRootMesher {
@@ -130,23 +150,32 @@ pub struct HeightmapRootMesher {
 
 fn sys_update_heightmap_meshes(
     mut commands: Commands,
-    mut heightmap_query: Query<(&HeightmapRoot, &mut HeightmapRootMesher, &mut HeightmapRootChanges), Changed<HeightmapRootChanges>>
+    mut heightmap_query: Query<(Entity, &HeightmapRoot, &mut HeightmapRootMesher, &mut HeightmapRootChanges), Changed<HeightmapRootChanges>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    for (root, mut root_mesher, mut root_changes) in heightmap_query.iter_mut() {
-        for key in root_changes.changed_keys.iter() {
-            let chunk = if let Some(chunk) = root.chunk_from_coord(*key) { chunk.read().unwrap() } else { continue };
+    for (root_entity, root, mut root_mesher, mut root_changes) in heightmap_query.iter_mut() {
+        let mut new_mesh_entities = vec![];
+        for key in root_changes.iter() {
+            let chunk = if let Some(chunk) = root.chunk_from_coord(key) { chunk.read().unwrap() } else { continue };
 
-            // Create mesh from chunk data... magical process
+            let new_mesh = MeshGen::from_square_heightmap(chunk.data(), CHUNK_2D_DIM);
 
-            if let Some(old_mesh_entity) = root_mesher.meshes.get(key) { commands.entity(*old_mesh_entity).despawn_recursive(); }
-            root_mesher.meshes.insert(*key, commands.spawn(PbrBundle {
-                    // >>> Mesh goes here <<<
+            if let Some(old_mesh_entity) = root_mesher.meshes.get(&key) { commands.entity(*old_mesh_entity).despawn_recursive(); }
+            let new_mesh_entity = commands.spawn(PbrBundle {
+                    mesh: meshes.add(new_mesh.clone()),
+                    material: materials.add(StandardMaterial { base_color: Color::rgb(0.3, 0.9, 0.6), unlit: true, ..default() }),
                     transform: Transform::from_translation(Vec3::new(key.x as f32, 0.0, key.y as f32)),
                     ..default()
-                }).id());
+                })
+                .insert(Collider::from_bevy_mesh(&new_mesh, &ComputedColliderShape::TriMesh).unwrap())
+                .id();
 
+            root_mesher.meshes.insert(key, new_mesh_entity);
+            new_mesh_entities.push(new_mesh_entity);
         }
 
-        root_changes.changed_keys.clear();
+        commands.entity(root_entity).push_children(&new_mesh_entities);
+        root_changes.clear();
     }
 }
