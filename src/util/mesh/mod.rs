@@ -113,6 +113,7 @@ impl NormalsMeshData {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 pub struct MeshGen;
 impl MeshGen {
+    /// This only works for heightmaps that loop infinitely.
     pub fn from_flat_chunk_2d_height_tables<T: Default + NumCast + Clone + Copy + PartialEq + Eq + Sync + Send + 'static>(
         c0_all: &[T],
         c1_side: &[T],
