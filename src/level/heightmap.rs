@@ -159,7 +159,50 @@ fn sys_update_heightmap_meshes(
         for key in root_changes.iter() {
             let chunk = if let Some(chunk) = root.chunk_from_coord(key) { chunk.read().unwrap() } else { continue };
 
-            let new_mesh = MeshGen::from_square_heightmap(chunk.data(), CHUNK_2D_DIM);
+            // I hate this
+            let new_mesh;
+            if let Some(chunk_r) = root.chunk_from_coord(IVec2::new(key.x + CHUNK_2D_DIM as i32, key.y)) {
+                if let Some(chunk_f) = root.chunk_from_coord(IVec2::new(key.x, key.y + CHUNK_2D_DIM as i32)) {
+                    if let Some(chunk_rf) = root.chunk_from_coord(IVec2::new(key.x + CHUNK_2D_DIM as i32, key.y + CHUNK_2D_DIM as i32)) {
+                        new_mesh = MeshGen::from_square_heightmap_with_r_f_rf_neighbors(
+                            chunk.data(),
+                            chunk_r.read().unwrap().data(),
+                            chunk_f.read().unwrap().data(),
+                            chunk_rf.read().unwrap().data(),
+                            CHUNK_2D_DIM);
+                    } else {
+                        new_mesh = MeshGen::from_square_heightmap_with_r_f_neighbors(
+                            chunk.data(),
+                            chunk_r.read().unwrap().data(),
+                            chunk_f.read().unwrap().data(),
+                            CHUNK_2D_DIM);
+                    }
+                } else {
+                    if let Some(chunk_rf) = root.chunk_from_coord(IVec2::new(key.x + CHUNK_2D_DIM as i32, key.y + CHUNK_2D_DIM as i32)) {
+                        // TODO: Right, Right & Front neighbors
+                        new_mesh = MeshGen::from_square_heightmap(chunk.data(), CHUNK_2D_DIM);
+                    } else {
+                        new_mesh = MeshGen::from_square_heightmap_with_r_neighbor(
+                            chunk.data(),
+                            chunk_r.read().unwrap().data(),
+                            CHUNK_2D_DIM);
+                    }
+                }
+            } else if let Some(chunk_f) = root.chunk_from_coord(IVec2::new(key.x, key.y + CHUNK_2D_DIM as i32)) {
+                if let Some(chunk_rf) = root.chunk_from_coord(IVec2::new(key.x + CHUNK_2D_DIM as i32, key.y + CHUNK_2D_DIM as i32)) {
+                    // TODO: Front, Right & Front neighbors
+                    new_mesh = MeshGen::from_square_heightmap(chunk.data(), CHUNK_2D_DIM);
+                } else {
+                    new_mesh = MeshGen::from_square_heightmap_with_f_neighbor(
+                        chunk.data(),
+                        chunk_f.read().unwrap().data(),
+                        CHUNK_2D_DIM);
+                }
+            } else {
+                // Alone in the world
+                // Only having a Right & Front neighbor is an ILLEGAL state which we ignore
+                new_mesh = MeshGen::from_square_heightmap(chunk.data(), CHUNK_2D_DIM);
+            }
 
             if let Some(old_mesh_entity) = root_mesher.meshes.get(&key) { commands.entity(*old_mesh_entity).despawn_recursive(); }
             let new_mesh_entity = commands.spawn(PbrBundle {

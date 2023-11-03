@@ -113,29 +113,175 @@ impl NormalsMeshData {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 pub struct MeshGen;
 impl MeshGen {
-    /// - data0: The heightmap being meshed
-    /// - data1: Right neighbor
-    /// - data2: Above neighbor
-    /// - data3: Right & Above neighbor
-    pub fn from_square_heightmap_with_neighbors(
-        data0: &[f32],
-        data1: &[f32],
-        data2: &[f32],
-        data3: &[f32],
+    /// - data: The heightmap being meshed
+    /// - data_r: Right neighbor
+    /// - data_f: Front neighbor
+    /// - data_rf: Right & Front neighbor
+    pub fn from_square_heightmap_with_r_f_rf_neighbors(
+        data: &[f32],
+        data_r: &[f32],
+        data_f: &[f32],
+        data_rf: &[f32],
         dim: u32,
     ) -> Mesh {
         let mut mesh_data = MeshData::default();
+        let mesh_dim = dim + 1;
 
-        for z in 0..dim { for x in 0..dim {
-            let i = z * dim + x;
-            mesh_data.verts.push([x as f32, data0[i as usize], z as f32]);
-            mesh_data.uvs.push([x as f32 / dim as f32, z as f32 / dim as f32]);
+        // Verts
+        for z in 0..dim {
+            for x in 0..dim {
+                // Verts from internal
+                let i = z * dim + x;
+                mesh_data.verts.push([x as f32, data[i as usize], z as f32]);
+            }
+
+            // Verts from left side of right neighbor
+            mesh_data.verts.push([dim as f32, data_r[(z * dim) as usize], z as f32]);
+        }
+
+        // Verts from bottom of front neighbor
+        for x in 0..dim { mesh_data.verts.push([x as f32, data_f[x as usize], dim as f32]); }
+
+        // Vert from bottom left corner of right & front neighbor
+        mesh_data.verts.push([dim as f32, data_rf[0], dim as f32]);
+
+        // UVs
+        for z in 0..mesh_dim { for x in 0..mesh_dim {
+            mesh_data.uvs.push([x as f32 / mesh_dim as f32, z as f32 / mesh_dim as f32]);
         }}
 
-        for z in 0..dim-1 { for x in 0..dim-1 {
+        for z in 0..dim { for x in 0..dim {
+            let i = z * mesh_dim + x;
+            mesh_data.add_triangle(i, i + mesh_dim, i + 1);
+            mesh_data.add_triangle(i + mesh_dim, i + mesh_dim + 1, i + 1);
+        }}
+
+        mesh_data.mesh()
+    }
+
+    /// - data: The heightmap being meshed
+    /// - data_r: Right neighbor
+    /// - data_f: Front neighbor
+    pub fn from_square_heightmap_with_r_f_neighbors(
+        data: &[f32],
+        data_r: &[f32],
+        data_f: &[f32],
+        dim: u32,
+    ) -> Mesh {
+        let mut mesh_data = MeshData::default();
+        let mesh_dim = dim + 1;
+
+        // Verts
+        for z in 0..dim {
+            for x in 0..dim {
+                // Verts from internal
+                let i = z * dim + x;
+                mesh_data.verts.push([x as f32, data[i as usize], z as f32]);
+            }
+
+            // Verts from left side of right neighbor
+            mesh_data.verts.push([dim as f32, data_r[(z * dim) as usize], z as f32]);
+        }
+
+        // Verts from bottom of front neighbor
+        for x in 0..dim { mesh_data.verts.push([x as f32, data_f[x as usize], dim as f32]); }
+
+        // UVs
+        for z in 0..mesh_dim { for x in 0..mesh_dim {
+            mesh_data.uvs.push([x as f32 / mesh_dim as f32, z as f32 / mesh_dim as f32]);
+        }}
+
+        // Get rid of last UV because vert doesn't exist
+        mesh_data.uvs.pop();
+
+        // All triangles except rightmost column
+        for z in 0..dim { for x in 0..dim-1 {
+            let i = z * mesh_dim + x;
+            mesh_data.add_triangle(i, i + mesh_dim, i + 1);
+            mesh_data.add_triangle(i + mesh_dim, i + mesh_dim + 1, i + 1);
+        }}
+
+        // Triangles in rightmost column except top right corner
+        for z in 0..dim-1 {
+            let i = z * mesh_dim + dim-1;
+            mesh_data.add_triangle(i, i + mesh_dim, i + 1);
+            mesh_data.add_triangle(i + mesh_dim, i + mesh_dim + 1, i + 1);
+        }
+
+        // Triangle in top right corner
+        let i = (dim-1) * mesh_dim + dim-1;
+        mesh_data.add_triangle(i, i + mesh_dim, i + 1);
+
+        mesh_data.mesh()
+    }
+
+    /// - data: The heightmap being meshed
+    /// - data_r: Right neighbor
+    pub fn from_square_heightmap_with_r_neighbor(
+        data: &[f32],
+        data_r: &[f32],
+        dim: u32,
+    ) -> Mesh {
+        let mut mesh_data = MeshData::default();
+        let mesh_dims = UVec2::new(dim+1, dim);
+
+        // Verts
+        for z in 0..dim {
+            for x in 0..dim {
+                // Verts from internal
+                let i = z * dim + x;
+                mesh_data.verts.push([x as f32, data[i as usize], z as f32]);
+            }
+
+            // Verts from left side of right neighbor
+            mesh_data.verts.push([dim as f32, data_r[(z * dim) as usize], z as f32]);
+        }
+
+        // UVs
+        for z in 0..mesh_dims.y { for x in 0..mesh_dims.x {
+            mesh_data.uvs.push([x as f32 / mesh_dims.x as f32, z as f32 / mesh_dims.y as f32]);
+        }}
+
+        // Triangles
+        for z in 0..mesh_dims.y-1 { for x in 0..mesh_dims.x-1 {
+            let i = z * mesh_dims.x + x;
+            mesh_data.add_triangle(i, i + mesh_dims.x, i + 1);
+            mesh_data.add_triangle(i + mesh_dims.x, i + mesh_dims.x + 1, i + 1);
+        }}
+
+        mesh_data.mesh()
+    }
+
+    /// - data: The heightmap being meshed
+    /// - data_f: Front neighbor
+    pub fn from_square_heightmap_with_f_neighbor(
+        data: &[f32],
+        data_f: &[f32],
+        dim: u32,
+    ) -> Mesh {
+        let mut mesh_data = MeshData::default();
+        let mesh_dims = UVec2::new(dim, dim+1);
+
+        // Verts
+        for z in 0..dim { for x in 0..dim {
+            // Verts from internal
             let i = z * dim + x;
-            mesh_data.add_triangle(i, i + dim, i + 1);
-            mesh_data.add_triangle(i + dim, i + dim + 1, i + 1);
+            mesh_data.verts.push([x as f32, data[i as usize], z as f32]);
+        }}
+
+        // Verts from bottom of front neighbor
+        for x in 0..dim { mesh_data.verts.push([x as f32, data_f[x as usize], dim as f32]); }
+
+        // UVs
+        for z in 0..mesh_dims.y { for x in 0..mesh_dims.x {
+            mesh_data.uvs.push([x as f32 / mesh_dims.x as f32, z as f32 / mesh_dims.y as f32]);
+        }}
+
+        // Triangles
+        for z in 0..mesh_dims.y-1 { for x in 0..mesh_dims.x-1 {
+            let i = z * mesh_dims.x + x;
+            mesh_data.add_triangle(i, i + mesh_dims.x, i + 1);
+            mesh_data.add_triangle(i + mesh_dims.x, i + mesh_dims.x + 1, i + 1);
         }}
 
         mesh_data.mesh()
@@ -144,90 +290,20 @@ impl MeshGen {
     pub fn from_square_heightmap(data: &[f32], dim: u32) -> Mesh {
         let mut mesh_data = MeshData::default();
 
+        // Verts & UVs
         for z in 0..dim { for x in 0..dim {
             let i = z * dim + x;
             mesh_data.verts.push([x as f32, data[i as usize], z as f32]);
             mesh_data.uvs.push([x as f32 / dim as f32, z as f32 / dim as f32]);
         }}
 
+        // Triangles
         for z in 0..dim-1 { for x in 0..dim-1 {
             let i = z * dim + x;
             mesh_data.add_triangle(i, i + dim, i + 1);
             mesh_data.add_triangle(i + dim, i + dim + 1, i + 1);
         }}
 
-        mesh_data.mesh()
-    }
-
-    /// This only works for heightmaps that loop infinitely.
-    pub fn from_flat_chunk_2d_height_tables<T: Default + NumCast + Clone + Copy + PartialEq + Eq + Sync + Send + 'static>(
-        c0_all: &[T],
-        c1_side: &[T],
-        c2_bottom: &[T],
-        c3_corner: T,
-        c0_lod: u8,
-        c1_lod: u8,
-        c2_lod: u8,
-        chunk_dim: u32,
-        height_multiplier: f32,
-    ) -> Mesh {
-        let c0_dim = chunk_dim >> c0_lod;
-        let _c1_dim = chunk_dim >> c1_lod;
-        let _c2_dim = chunk_dim >> c2_lod;
-
-        let mesh_dim = c0_dim + 1;
-        let mesh_half_dim = mesh_dim as f32 * 0.5;
-        let mesh_size = mesh_dim * mesh_dim;
-        let mut mesh_data = MeshData::default();
-        mesh_data.verts = Vec::<[f32; 3]>::with_capacity(mesh_size as usize);
-
-        // Verts
-        for y in 0..c0_dim {
-            for x in 0..c0_dim {
-                // Verts Internal
-                mesh_data.verts.push([
-                    x as f32 - mesh_half_dim,
-                    cast::<T, f32>(c0_all[(y * chunk_dim + x) as usize]).unwrap() * height_multiplier,
-                    y as f32 - mesh_half_dim,
-                ]);
-            }
-
-            // Verts Side
-            mesh_data.verts.push([
-                c0_dim as f32 - mesh_half_dim,
-                cast::<T, f32>(c1_side[y as usize]).unwrap() * height_multiplier,
-                y as f32 - mesh_half_dim,
-            ]);
-        }
-
-        // Verts Top
-        for x in 0..c0_dim {
-            mesh_data.verts.push([
-                x as f32 - mesh_half_dim,
-                cast::<T, f32>(c2_bottom[x as usize]).unwrap() * height_multiplier,
-                c0_dim as f32 - mesh_half_dim,
-            ]);
-        }
-
-        // Verts Corner
-        mesh_data.verts.push([
-            c0_dim as f32 - mesh_half_dim,
-            cast::<T, f32>(c3_corner).unwrap() * height_multiplier,
-            c0_dim as f32 - mesh_half_dim,
-        ]);
-        
-        // Triangles & UVs
-        for y in 0..mesh_dim { for x in 0..mesh_dim {
-            if x < c0_dim && y < c0_dim {
-                let i = y * mesh_dim + x;
-                mesh_data.add_triangle(i + 1 + mesh_dim, i + 1, i);
-                mesh_data.add_triangle(i + mesh_dim, i + 1 + mesh_dim, i);
-            }
-    
-            mesh_data.uvs.push([x as f32 / mesh_dim as f32, y as f32 / mesh_dim as f32]);
-        }}
-
-        // Mesh
         mesh_data.mesh()
     }
 
