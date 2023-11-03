@@ -27,6 +27,8 @@ mod camera;
 pub use camera::*;
 mod input;
 pub use input::*;
+mod level;
+pub use level::*;
 mod gui;
 pub use gui::*;
 mod networking;
@@ -95,6 +97,7 @@ impl Plugin for TankPlugin {
                 TankAudioPlugin,
                 TankCameraPlugin,
                 TankInputPlugin,
+                TankLevelPlugin,
                 TankGuiPlugin,
                 // TankNetworkingPlugin
                 TankPackagesPlugin,

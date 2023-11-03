@@ -12,11 +12,7 @@ pub struct FlatSparseRoot2d<T: Default + Clone + Copy + Sync + Send + 'static> {
 
 impl<T: Default + Clone + Copy + Sync + Send + 'static> FlatSparseRoot2d<T> {
     pub fn new(log2dim: u8, background: T) -> Self {
-        Self {
-            log2dim,
-            background,
-            chunks: HashMap::<IVec2, Arc<RwLock<Leaf2d<T>>>>::default(),
-        }
+        Self { log2dim, background, chunks: HashMap::<IVec2, Arc<RwLock<Leaf2d<T>>>>::default() }
     }
 
     #[inline] pub fn log2dim(&self) -> u8 { self.log2dim }
