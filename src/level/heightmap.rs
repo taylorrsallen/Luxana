@@ -199,15 +199,14 @@ fn sys_update_heightmap_meshes(
                         CHUNK_2D_DIM);
                 }
             } else {
-                // Alone in the world
-                // Only having a Right & Front neighbor is an ILLEGAL state which we ignore
+                // Alone in the world. Only having a Right & Front neighbor is an ILLEGAL state which we ignore.
                 new_mesh = MeshGen::from_square_heightmap(chunk.data(), CHUNK_2D_DIM);
             }
 
             if let Some(old_mesh_entity) = root_mesher.meshes.get(&key) { commands.entity(*old_mesh_entity).despawn_recursive(); }
             let new_mesh_entity = commands.spawn(PbrBundle {
                     mesh: meshes.add(new_mesh.clone()),
-                    material: materials.add(StandardMaterial { base_color: Color::rgb(0.3, 0.9, 0.6), unlit: true, ..default() }),
+                    material: materials.add(StandardMaterial { base_color: Color::rgb(0.3, 0.9, 0.6), ..default() }),
                     transform: Transform::from_translation(Vec3::new(key.x as f32, 0.0, key.y as f32)),
                     ..default()
                 })

@@ -47,18 +47,18 @@ const TILE_TEMP_TEXTURE_IDS: [u8; 17] = [
 pub struct Tile3dMesher;
 impl Tile3dMesher {
     pub fn add_tile<T: HeightData + ShapeData + Default + Clone + Copy + Sync + Send + 'static>(
-        mesh_data: &mut NormalsMeshData,
+        mesh_data: &mut MeshData,
         value_coord: &IVec2,
         global_coord: &IVec2,
         value: &T,
         root: &FlatSparseRoot2d<T>,
     ) {
         let shape = value.shape() as usize;
-        let vert_count = mesh_data.base.verts.len();
+        let vert_count = mesh_data.verts.len();
 
         for vert_index in 0..4 {
             let vert = TILE_VERTS[vert_index];
-            mesh_data.base.verts.push([
+            mesh_data.verts.push([
                 vert[0] + value_coord.x as f32,
                 (value.height() as f32 - 127.0) * 0.5 + TILE_HEIGHT_VALUES[TILE_HEIGHT_INDICES[shape][vert_index] as usize],
                 vert[1] + value_coord.y as f32,
@@ -67,12 +67,12 @@ impl Tile3dMesher {
             let uv = CUBE_UVS[vert_index];
             let uv_offset = TEX_ATLAS_UV_DIM * 4.0; // voxel.face_texture_id(face, defs) as f32;
             let uv_offset_floor = uv_offset.floor() as f32;
-            mesh_data.base.uvs.push([uv[0] + uv_offset - uv_offset_floor, uv[1] + uv_offset_floor * TEX_ATLAS_UV_DIM as f32]);
+            mesh_data.uvs.push([uv[0] + uv_offset - uv_offset_floor, uv[1] + uv_offset_floor * TEX_ATLAS_UV_DIM as f32]);
         }
 
         mesh_data.normals.extend(vec![CUBE_NORMALS[3]; 4]);
 
-        for tri_index in 0..6 { mesh_data.base.indices.push(CUBE_QUAD_INDICES[tri_index] + vert_count as u32); }
+        for tri_index in 0..6 { mesh_data.indices.push(CUBE_QUAD_INDICES[tri_index] + vert_count as u32); }
     }
 }
 

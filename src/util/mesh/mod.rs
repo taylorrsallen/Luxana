@@ -57,13 +57,14 @@ pub const CUBE_QUAD_INDICES: [u32; 6] = [0, 2, 1, 1, 2, 3];
 pub struct MeshData {
     pub verts: Vec<[f32; 3]>,
     pub indices: Vec<u32>,
+    pub normals: Vec<[f32; 3]>,
     pub uvs: Vec<[f32; 2]>,
     pub colors: Vec<[f32; 4]>,
 }
 
 impl Default for MeshData {
     fn default() -> Self {
-        Self { verts: vec![], indices: vec![], uvs: vec![], colors: vec![] }
+        Self { verts: vec![], indices: vec![], normals: vec![], uvs: vec![], colors: vec![] }
     }
 }
 
@@ -74,6 +75,7 @@ impl MeshData {
         let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
         mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, self.verts.clone());
         mesh.set_indices(Some(Indices::U32(self.indices.clone())));
+        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, self.normals.clone());
         mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, self.uvs.clone());
         if !self.colors.is_empty() { mesh.insert_attribute(Mesh::ATTRIBUTE_COLOR, self.colors.clone()); }
         mesh
@@ -84,30 +86,32 @@ impl MeshData {
         self.indices.push(b);
         self.indices.push(c);
     }
-}
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct NormalsMeshData {
-    pub base: MeshData,
-    pub normals: Vec<[f32; 3]>,
-}
+    pub fn calculate_normals(&mut self) {
+        let mut normals = vec![Vec3::ZERO; self.verts.len()];
 
-impl Default for NormalsMeshData {
-    fn default() -> Self {
-        Self { base: MeshData::default(), normals: vec![] }
-    }
-}
+        let tri_count = self.indices.len() / 3;
+        for i in 0..tri_count {
+            let normal_tri_index = i * 3;
+            let vert_index_a = self.indices[normal_tri_index] as usize;
+            let vert_index_b = self.indices[normal_tri_index + 1] as usize;
+            let vert_index_c = self.indices[normal_tri_index + 2] as usize;
 
-impl NormalsMeshData {
-    pub fn is_empty(&self) -> bool { self.base.verts.is_empty() }
+            let tri_normal = self.surface_normals_from_indices(vert_index_a, vert_index_b, vert_index_c);
+            normals[vert_index_a] += tri_normal;
+            normals[vert_index_b] += tri_normal;
+            normals[vert_index_c] += tri_normal;
+        }
 
-    pub fn mesh(&self) -> Mesh {
-        let mut mesh = self.base.mesh();
-        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, self.normals.clone());
-        mesh
+        self.normals = normals.iter().map(|normal| { normal.normalize().to_array() }).collect();
     }
 
-    pub fn add_triangle(&mut self, a: u32, b: u32, c: u32) { self.base.add_triangle(a, b, c); }
+    pub fn surface_normals_from_indices(&self, index_a: usize, index_b: usize, index_c: usize) -> Vec3 {
+        let point_a = Vec3::from_array(self.verts[index_a]);
+        let side_ab = Vec3::from_array(self.verts[index_b]) - point_a;
+        let side_ac = Vec3::from_array(self.verts[index_c]) - point_a;
+        side_ab.cross(side_ac).normalize()
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -156,6 +160,7 @@ impl MeshGen {
             mesh_data.add_triangle(i + mesh_dim, i + mesh_dim + 1, i + 1);
         }}
 
+        mesh_data.calculate_normals();
         mesh_data.mesh()
     }
 
@@ -212,6 +217,7 @@ impl MeshGen {
         let i = (dim-1) * mesh_dim + dim-1;
         mesh_data.add_triangle(i, i + mesh_dim, i + 1);
 
+        mesh_data.calculate_normals();
         mesh_data.mesh()
     }
 
@@ -249,6 +255,7 @@ impl MeshGen {
             mesh_data.add_triangle(i + mesh_dims.x, i + mesh_dims.x + 1, i + 1);
         }}
 
+        mesh_data.calculate_normals();
         mesh_data.mesh()
     }
 
@@ -284,6 +291,7 @@ impl MeshGen {
             mesh_data.add_triangle(i + mesh_dims.x, i + mesh_dims.x + 1, i + 1);
         }}
 
+        mesh_data.calculate_normals();
         mesh_data.mesh()
     }
 
@@ -304,40 +312,41 @@ impl MeshGen {
             mesh_data.add_triangle(i + dim, i + dim + 1, i + 1);
         }}
 
+        mesh_data.calculate_normals();
         mesh_data.mesh()
     }
 
-    pub fn from_flat_sparse_chunk_3d<T: Default + Clone + Copy + Sync + Send + 'static>(
-        chunk_coord: &IVec3,
-        root: &FlatSparseRoot3d<T>,
-    ) -> Option<Mesh> {
-        let mut mesh_data = NormalsMeshData::default();
-        let chunk = if let Some(chunk) = root.chunk_from_coord(&chunk_coord) { chunk.read().unwrap() } else { return None };
+    // pub fn from_flat_sparse_chunk_3d<T: Default + Clone + Copy + Sync + Send + 'static>(
+    //     chunk_coord: &IVec3,
+    //     root: &FlatSparseRoot3d<T>,
+    // ) -> Option<Mesh> {
+    //     let mut mesh_data = MeshData::default();
+    //     let chunk = if let Some(chunk) = root.chunk_from_coord(&chunk_coord) { chunk.read().unwrap() } else { return None };
 
-        for i in OnMaskIter::new(0, chunk.active_mask()) {
-            let voxel_coord = root.value_local_coord_from_index(i);
-            VoxelMesher::add_cube_with_normals(&mut mesh_data, &voxel_coord, chunk_coord, root);
-        }
+    //     for i in OnMaskIter::new(0, chunk.active_mask()) {
+    //         let voxel_coord = root.value_local_coord_from_index(i);
+    //         VoxelMesher::add_cube_with_normals(&mut mesh_data, &voxel_coord, chunk_coord, root);
+    //     }
 
-        if mesh_data.is_empty() { return None; }
-        Some(mesh_data.mesh())
-    }
+    //     if mesh_data.is_empty() { return None; }
+    //     Some(mesh_data.mesh())
+    // }
 
-    pub fn from_flat_sparse_chunk_2d_terrain_data<T: HeightData + ShapeData + Default + Clone + Copy + Sync + Send + 'static>(
-        chunk_coord: &IVec2,
-        root: &FlatSparseRoot2d<T>,
-    ) -> Option<Mesh> {
-        let mut mesh_data = NormalsMeshData::default();
-        let chunk = if let Some(chunk) = root.chunk_from_coord(*chunk_coord) { chunk.read().unwrap() } else { return None };
+    // pub fn from_flat_sparse_chunk_2d_terrain_data<T: HeightData + ShapeData + Default + Clone + Copy + Sync + Send + 'static>(
+    //     chunk_coord: &IVec2,
+    //     root: &FlatSparseRoot2d<T>,
+    // ) -> Option<Mesh> {
+    //     let mut mesh_data = MeshData::default();
+    //     let chunk = if let Some(chunk) = root.chunk_from_coord(*chunk_coord) { chunk.read().unwrap() } else { return None };
 
-        for i in 0..CHUNK_2D_SIZE {
-            let value_coord = root.value_local_coord_from_index(i as u32);
-            let global_coord = value_coord + *chunk_coord;
-            let value = root.get_value(global_coord);
-            Tile3dMesher::add_tile(&mut mesh_data, &value_coord, &global_coord, &value, root);
-        }
+    //     for i in 0..CHUNK_2D_SIZE {
+    //         let value_coord = root.value_local_coord_from_index(i as u32);
+    //         let global_coord = value_coord + *chunk_coord;
+    //         let value = root.get_value(global_coord);
+    //         Tile3dMesher::add_tile(&mut mesh_data, &value_coord, &global_coord, &value, root);
+    //     }
 
-        if mesh_data.is_empty() { return None; }
-        Some(mesh_data.mesh())
-    }
+    //     if mesh_data.is_empty() { return None; }
+    //     Some(mesh_data.mesh())
+    // }
 }

@@ -117,3 +117,6 @@ Currently not very user friendly, and the majority of implementations are naive,
 - Why the distinction?
     - `Actors` were for all the components that a player or an AI would control via input components... but isn't that too broad?
     - A `Projectile` might have a vector for direction and magnitude, but even something like that could potentially be an `Actor`. Like a remote control rocket. Or a magic bullet you control in slow motion. So would you have a marker component that says 'edit the projectile values based on MoveInput(3d/2d)'? And would that marker component belong in the `Projectile` files or in `Actor` files?
+
+- Shaders
+    - Require a custom material with a hardcoded function to return the file location of the shader, in the assets folder of the project using the library. I was hoping to have built in shaders like clouds & water & fog volumes, but I think I may have to wait until Bevy updates how they handle shaders.

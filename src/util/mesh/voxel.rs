@@ -39,12 +39,12 @@ impl VoxelMesher {
     }
 
     pub fn add_cube_with_normals<T: Default + Clone + Copy + Sync + Send + 'static>(
-        mesh_data: &mut NormalsMeshData,
+        mesh_data: &mut MeshData,
         voxel_coord: &IVec3,
         chunk_coord: &IVec3,
         root: &FlatSparseRoot3d<T>,
     ) {
-        Self::add_cube(&mut mesh_data.base, voxel_coord, chunk_coord, root);
+        Self::add_cube(mesh_data, voxel_coord, chunk_coord, root);
         for face in 0..6 { mesh_data.normals.extend(vec![CUBE_NORMALS[face as usize]; 4]); }
     }
 }
