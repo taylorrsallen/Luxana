@@ -34,10 +34,10 @@ pub struct GuiButtonBundle {
 }
 
 impl GuiButtonBundle {
-    pub fn new(player_id: u32, action_id: u32) -> Self {
+    pub fn new(player_id: u32, menu_id: u16, action_id: u16) -> Self {
         Self {
             render_layers: RenderLayers::layer(player_id as u8 + 16),
-            button_action: GuiButtonAction { id: action_id },
+            button_action: GuiButtonAction { menu_id, action_id },
             ..default()
         }
     }
@@ -66,11 +66,11 @@ impl GuiButtonBundle {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+/// TODO: Goal is a subscriptor model for Gui events like button activations, but it has to wait.
+/// 
+/// For now just give buttons a unique ID and use a match. More complex Guis will be a pain.
 #[derive(Event)]
-pub struct GuiButtonActionEvent {
-    pub button: Entity,
-    pub id: u32,
-}
+pub struct GuiButtonActionEvent(pub Entity);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #[derive(Component, Default, Clone, Copy, PartialEq, Eq, Reflect)]
@@ -122,7 +122,7 @@ impl GuiButtonState {
                 *self = GuiButtonState::Released;
 
                 if let Ok(button_action) = button_action_query.get(button_entity) {
-                    button_action_events.send(GuiButtonActionEvent { button: button_entity, id: button_action.id });
+                    button_action_events.send(GuiButtonActionEvent { 0: button_entity });
                 }
 
                 return true;
@@ -163,7 +163,8 @@ fn sys_update_button_states(
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
 pub struct GuiButtonAction {
-    pub id: u32,
+    pub menu_id: u16,
+    pub action_id: u16,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

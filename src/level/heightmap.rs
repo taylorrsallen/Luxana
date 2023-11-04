@@ -116,6 +116,7 @@ impl HeightmapChunk {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+/// For tracking changed chunks. Just use mark_change with global coord any time you edit a chunk.
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
 pub struct HeightmapRootChanges(HashSet<IVec2>);
@@ -142,6 +143,9 @@ impl HeightmapRootChanges {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Put this on a [HeightmapRoot] along with [HeightmapRootChanges], and the heightmap will be meshed.
+/// 
+/// You must mark any changes made using [HeightmapRootChanges], or the mesh will not update.
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
 pub struct HeightmapRootMesher {

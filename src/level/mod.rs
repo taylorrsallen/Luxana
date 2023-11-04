@@ -2,6 +2,8 @@ use crate::*;
 
 mod heightmap;
 pub use heightmap::*;
+mod overworld;
+pub use overworld::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// 0. Left
@@ -54,6 +56,7 @@ impl Plugin for TankLevelPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
                 TankLevelHeightmapPlugin,
+                TankLevelOverworldPlugin,
             ));
     }
 }
