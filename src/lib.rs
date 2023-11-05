@@ -31,8 +31,6 @@ mod level;
 pub use level::*;
 mod gui;
 pub use gui::*;
-mod networking;
-pub use networking::*;
 mod packages;
 pub use packages::*;
 mod player;
@@ -99,7 +97,6 @@ impl Plugin for TankPlugin {
                 TankInputPlugin,
                 TankLevelPlugin,
                 TankGuiPlugin,
-                // TankNetworkingPlugin
                 TankPackagesPlugin,
                 TankPlayerPlugin,
                 TankStatePlugin,
