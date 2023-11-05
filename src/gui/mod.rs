@@ -15,6 +15,8 @@ mod collider;
 pub use collider::*;
 mod label;
 pub use label::*;
+mod layout;
+pub use layout::*;
 mod menu;
 pub use menu::*;
 mod pos;
@@ -72,6 +74,7 @@ pub struct GuiContext {
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
 pub struct GuiRoot {
+    /// The camera with the viewport this Gui is displaying for.
     pub camera: Option<Entity>,
 }
 

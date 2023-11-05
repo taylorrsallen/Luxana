@@ -2,6 +2,9 @@ use crate::*;
 
 use bevy::window::PrimaryWindow;
 
+mod splitscreen;
+pub use splitscreen::*;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 pub struct TankPlayerPlugin;
 impl Plugin for TankPlayerPlugin {
@@ -11,7 +14,12 @@ impl Plugin for TankPlayerPlugin {
             .register_type::<PlayerGuiCameraRef>()
             .register_type::<PlayerMainCameraRef>()
             .register_type::<PlayerSelector>()
-            .register_type::<PlayerController>();
+            .register_type::<PlayerController>()
+            .insert_resource(SplitscreenSettings::default())
+            .add_systems(PostUpdate, (
+                sys_mark_splitscreen_changes,
+                sys_update_resized_camera_viewports,
+            ));
     }
 }
 

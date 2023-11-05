@@ -4015,6 +4015,7 @@ dependencies = [
  "rand_seeder",
  "ron",
  "serde",
+ "taffy",
  "winit",
 ]
 

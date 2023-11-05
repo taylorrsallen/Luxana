@@ -27,16 +27,31 @@ Currently not very user friendly, and the majority of implementations are naive,
 
 ### 4. Gui
 - Bevy's UI doesn't allow for using multiple windows. Egui doesn't allow for pixel perfect image display. Currently this is a kind've hacked together approach that uses Bevy's RenderLayers along with Camera2d to display ui using sprites.
+- TODO:
+    - [ ] Buttons
+        - [ ] Sprites for different button states
+        - [ ] Selector
+    - [ ] Display the same gui to multiple players
+    - [ ] Multiple player cursors per gui
+    - [ ] Layouts
+    - [ ] Refactor using Bevy's UI code, but for multiple windows
 - Issues:
-    - Performs fine but this is scuffed. Try imgui? Or anything else?
+    - Performs fine but this is scuffed. Try imgui? Alter Bevy's UI code? Or anything else?
 
 ### 5. Input
 - I'm not a fan of Bevy's input system, this is an attempt to do something I like more + extend it to allow for bindings, but implementation falls flat.
 - Currently allows for assigning input bindings and trigger states (pressed, released, held) to values of a user created input actions enum. Players can then be assigned devices through InputDeviceReceiver.
 - Implementation is pretty derpy. Needs a refactor. Creating separate bindings for the same key to detect held/pressed/released is dumb.
 
-### 6. Networking
-- Doesn't exist at the moment. Literally just example code from a networking library I was looking at.
+### 6. Level
+- The entities which will represent the game world. Called Level because Bevy uses World, and universe is too long.
+- TODO:
+    - [ ] Heightmap
+        - [?] Does this belong here? Isn't this more of a raw data structure than a game world impl?
+        - [ ] Fix lighting artifacts on chunk edges from incomplete normals calculations
+    - [ ] Overworld
+        - [ ] Landmarks to travel between
+        - [ ] Paths represented as series of lines or curves between Landmarks
 
 ### 7. Packages
 - Gathers up all assets from hardcoded folders (fonts, images, models, sounds).
@@ -44,9 +59,13 @@ Currently not very user friendly, and the majority of implementations are naive,
 
 ### 8. Player
 - A Player Controller. Just an invisible Entity that handles connections to the camera, input, controlled actors, etc...
+- TODO:
+    - [ ] Framework for handling splitscreen & multi-window
 
 ### 9. Profile
 - For saving/loading game settings. And probably game data too. I have an old (bad) implementation that I still need to refactor & port over.
+- TODO:
+    - [ ] Port profile code from yveB
 
 ### 10. State
 - EngineInit, GameInit, and Main states. The game using Tank is meant to advance the GameInit state to the Main state.
@@ -98,6 +117,9 @@ Currently not very user friendly, and the majority of implementations are naive,
 
 ### 13. Voxel
 - The oldest part of the library, and a mess. Half of the code in here doesn't work anymore. Don't use this; probably don't even look at this.
+- TODO:
+    - [ ] Refactor so that usage is easier
+    - [ ] Fix broken math in Root3d
 
 ## Notes
 - Just get rid of any idea of `Actors`? All game objects are just `Things` with different components. Terrain is special because it's static/fixed (heightmap, voxels, editable or not, etc.), but debris from terrain could be `Things`.
