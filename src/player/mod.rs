@@ -2,6 +2,8 @@ use crate::*;
 
 use bevy::window::PrimaryWindow;
 
+mod manager;
+pub use manager::*;
 mod splitscreen;
 pub use splitscreen::*;
 
@@ -15,11 +17,17 @@ impl Plugin for TankPlayerPlugin {
             .register_type::<PlayerMainCameraRef>()
             .register_type::<PlayerSelector>()
             .register_type::<PlayerController>()
+            .register_type::<SplitscreenSettings>()
             .insert_resource(SplitscreenSettings::default())
+            .add_systems(OnEnter(AppState::EngineInit), onsys_spawn_primary_player)
             .add_systems(PostUpdate, (
+                sys_update_player_ids,
+                sys_init_added_players,
+                sys_update_changed_player_cameras,
+                sys_update_primary_player_devices,
                 sys_mark_splitscreen_changes,
                 sys_update_resized_camera_viewports,
-            ));
+            ).chain());
     }
 }
 
@@ -31,12 +39,11 @@ impl Plugin for TankPlayerPlugin {
 #[reflect(Component)]
 pub struct PrimaryPlayer;
 
-/// Used to be more than a marker component.
-/// 
-/// TODO: Remove this? Most player components are player exclusive anyways and don't require a marker filter.
+/// Marker component.
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
 pub struct Player;
+
 impl Player {
     pub fn next_id(player_id_query: &Query<&Id, With<Player>>) -> u32 {
         let mut id = 0;
@@ -116,6 +123,40 @@ impl PlayerController {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+pub struct Players;
+impl Players {
+    pub fn spawn_default_player(commands: &mut Commands) -> Entity {
+        let gui_camera_entity = commands.spawn(GuiCameraBundle::default()).id();
+        let main_camera_entity = commands.spawn(MainCameraBundle::default()).id();
+        commands.spawn(PlayerBundle::new(
+                Some(gui_camera_entity),
+                Some(main_camera_entity),
+                None,
+                None,
+                &vec![],
+            ))
+            .id()
+    }
+
+    pub fn despawn_player(
+        player_entity: Entity,
+        gui_camera_ref_query: &Query<&PlayerGuiCameraRef>,
+        main_camera_ref_query: &Query<&PlayerMainCameraRef>,
+        commands: &mut Commands,
+    ) {
+        if let Ok(gui_camera_ref) = gui_camera_ref_query.get(player_entity) {
+            if let Some(gui_camera) = gui_camera_ref.try_get() { commands.entity(*gui_camera).despawn_recursive(); }
+        }
+    
+        if let Ok(main_camera_ref) = main_camera_ref_query.get(player_entity) {
+            if let Some(main_camera) = main_camera_ref.try_get() { commands.entity(*main_camera).despawn_recursive(); }
+        }
+    
+        commands.entity(player_entity).despawn_recursive();
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 #[derive(Bundle, Default)]
 pub struct PlayerBundle {
     pub player: Player,
@@ -137,19 +178,14 @@ impl PlayerBundle {
         controlled_entity: Option<Entity>,
         input_action_bindings: Option<InputActionBindings>,
         input_devices: &[InputDevice],
-        id: u32,
     ) -> Self {
         Self {
-            player: Player::default(),
             player_gui_camera_ref: PlayerGuiCameraRef::new(gui_camera),
             player_main_camera_ref: PlayerMainCameraRef::new(main_camera),
             player_controller: PlayerController::new(controlled_entity),
-            input_actions: InputActions::default(),
             input_action_bindings: if let Some(bindings) = input_action_bindings { bindings } else { InputActionBindings::default() },
             input_device_receiver: InputDeviceReceiver::from_devices(&input_devices),
-            raw_button_input: RawButtonInput::default(),
-            raw_axis_input: RawAxisInput::default(),
-            id: Id::new(id),
+            ..default()
         }
     }
 }

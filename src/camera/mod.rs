@@ -1,6 +1,6 @@
 use crate::*;
 
-use bevy::{render::{camera::{RenderTarget, Viewport, camera_system}, view::VisibilitySystems}, window::{WindowRef, PrimaryWindow}, transform::TransformSystem};
+use bevy::{render::{camera::{RenderTarget, Viewport, camera_system}, view::VisibilitySystems}, window::{WindowRef, PrimaryWindow}, transform::TransformSystem, pbr::{ScreenSpaceAmbientOcclusionBundle, ScreenSpaceAmbientOcclusionSettings, ScreenSpaceAmbientOcclusionQualityLevel}, core_pipeline::{clear_color::ClearColorConfig, tonemapping::Tonemapping}};
 
 mod anchor;
 pub use anchor::*;
@@ -15,8 +15,7 @@ pub use zoom::*;
 pub struct TankCameraPlugin;
 impl Plugin for TankCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<TransformTargetRef>()
-            .register_type::<CameraRig>()
+        app.register_type::<CameraRig>()
             .register_type::<CameraAnchor>()
             .register_type::<CameraOrbit>()
             .register_type::<CameraZoom>()
@@ -86,9 +85,7 @@ fn sys_update_camera_up(
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#[derive(Resource, Default)]
-pub struct Cameras(Vec<Entity>);
-
+pub struct Cameras;
 impl Cameras {
     pub fn window_entity_from_camera(camera: &Camera, primary_window_query: &Query<Entity, With<PrimaryWindow>>) -> Entity {
         Self::window_entity_from_render_target(&camera.target, primary_window_query)
@@ -108,44 +105,51 @@ impl Cameras {
             WindowRef::Entity(entity) => { *entity }
         }
     }
+}
 
-    // fn splitscreen_viewport_position(camera_count: usize, order: usize, resolution_width: u32, resolution_height: u32) -> UVec2 {
-    //     match camera_count {
-    //         1 => { UVec2::new(0, 0) }
-    //         2 => { UVec2::new((resolution_width / 2) * order as u32, 0) }
-    //         3 => {
-    //             if order == 0 {
-    //                 UVec2::new(0, 0)
-    //             } else {
-    //                 UVec2::new((resolution_width / 2) * (order as u32 - 1), resolution_height / 2)
-    //             }
-    //         }
-    //         4 => { UVec2::new((resolution_width / 2) * (order as u32 % 2), if order < 2 { 0 } else { resolution_height / 2 }) }
-    //         _ => { panic!("Requested viewport position for invalid camera_count!") }
-    //     }
-    // }
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#[derive(Bundle)]
+pub struct GuiCameraBundle {
+    pub camera_2d: Camera2dBundle,
+}
 
-    // fn splitscreen_viewport_size(camera_count: usize, order: usize, resolution_width: u32, resolution_height: u32) -> UVec2 {
-    //     match camera_count {
-    //         1 => { UVec2::new(resolution_width, resolution_height) }
-    //         2 => { UVec2::new(resolution_width / 2, resolution_height) }
-    //         3 => {
-    //             if order == 0 {
-    //                 UVec2::new(resolution_width, resolution_height / 2)
-    //             } else {
-    //                 UVec2::new(resolution_width / 2, resolution_height / 2)
-    //             }
-    //         }
-    //         4 => { UVec2::new(resolution_width / 2, resolution_height / 2) }
-    //         _ => { panic!("Requested viewport size for invalid camera_count!") }
-    //     }
-    // }
+impl Default for GuiCameraBundle {
+    fn default() -> Self {
+        Self {
+            camera_2d: Camera2dBundle {
+                camera_2d: Camera2d { clear_color: ClearColorConfig::None },
+                tonemapping: Tonemapping::AcesFitted,
+                ..default()
+            },
+        }
+    }
+}
 
-    // fn splitscreen_viewport(camera_count: usize, order: usize, resolution_width: u32, resolution_height: u32) -> Viewport {
-    //     Viewport {
-    //         physical_position: Self::splitscreen_viewport_position(camera_count, order, resolution_width, resolution_height),
-    //         physical_size: Self::splitscreen_viewport_size(camera_count, order, resolution_width, resolution_height),
-    //         ..default()
-    //     }
-    // }
+#[derive(Bundle)]
+pub struct MainCameraBundle {
+    pub camera_3d: Camera3dBundle,
+    pub audio_receiver: AudioReceiver,
+    pub fog_settings: FogSettings,
+    pub ssao_bundle: ScreenSpaceAmbientOcclusionBundle,
+}
+
+impl Default for MainCameraBundle {
+    fn default() -> Self {
+        Self {
+            camera_3d: Camera3dBundle {
+                camera_3d: Camera3d { clear_color: ClearColorConfig::None, ..default() },
+                projection: Projection::Perspective(PerspectiveProjection { fov: 60.0 * 0.01745329, ..default() }),
+                tonemapping: Tonemapping::AcesFitted,
+                ..default()
+            },
+            audio_receiver: AudioReceiver,
+            fog_settings: FogSettings {
+                color: Color::rgba(0.1, 0.2, 0.4, 1.0),
+                directional_light_color: Color::rgba(1.0, 0.95, 0.75, 0.5),
+                directional_light_exponent: 500.0,
+                falloff: FogFalloff::from_visibility_colors(20.0, Color::rgb(0.35, 0.5, 0.66), Color::rgb(0.8, 0.844, 1.0))
+            },
+            ssao_bundle: ScreenSpaceAmbientOcclusionBundle::default(),
+        }
+    }
 }

@@ -27,6 +27,7 @@ pub struct SplitscreenSettings {
     three_player_pref: ThreePlayerSplitPref,
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 pub fn sys_mark_splitscreen_changes(
     mut window_query: Query<&mut Window>,
     removed_cameras: RemovedComponents<Camera>,
@@ -65,9 +66,6 @@ pub fn sys_update_resized_camera_viewports(
 
         for (i, (player_id, gui_camera_ref, main_camera_entity)) in cameras_in_window.iter().copied().enumerate() {
             let viewport = get_splitscreen_viewport(i as u32, camera_count, physical_size, &splitscreen_settings);
-            if let Some(testviewport) = viewport.clone() {
-                println!("{:?}", testviewport);
-            }
 
             let mut main_camera = camera_query.get_mut(main_camera_entity).unwrap();
             main_camera.viewport = viewport.clone();
@@ -81,6 +79,7 @@ pub fn sys_update_resized_camera_viewports(
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 fn get_splitscreen_viewport(order: u32, camera_count: u32, physical_size: Vec2, splitscreen_settings: &Res<SplitscreenSettings>) -> Option<Viewport> {
     match camera_count {
         2 => { get_two_player_viewport(order, physical_size, splitscreen_settings.two_player_pref) },
