@@ -23,6 +23,7 @@ mod pos;
 pub use pos::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+/// TODO: Make this a super plugin and un-plugin all the mini plugins so control flow is more controlled.
 pub struct TankGuiPlugin;
 impl Plugin for TankGuiPlugin {
     fn build(&self, app: &mut App) {

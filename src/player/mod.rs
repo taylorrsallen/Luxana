@@ -123,6 +123,17 @@ impl PlayerController {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+#[derive(Component, Default, Reflect, PartialEq, Eq, Clone, Copy)]
+#[reflect(Component)]
+pub enum PlayerLookState {
+    /// Look inputs rotate the camera
+    #[default]
+    Camera,
+    /// Look inputs move the cursor
+    Cursor,
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 pub struct Players;
 impl Players {
     pub fn spawn_default_player(commands: &mut Commands) -> Entity {
@@ -162,6 +173,7 @@ pub struct PlayerBundle {
     pub player: Player,
     pub player_gui_camera_ref: PlayerGuiCameraRef,
     pub player_main_camera_ref: PlayerMainCameraRef,
+    pub player_look_state: PlayerLookState,
     pub player_controller: PlayerController,
     pub input_actions: InputActions,
     pub input_action_bindings: InputActionBindings,

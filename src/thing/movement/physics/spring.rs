@@ -17,25 +17,31 @@ impl Plugin for TankSpringPhysicsMovementPlugin {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #[derive(Bundle)]
 pub struct SpringPhysicsMoverBundle {
-    move_target: MoveInput3d,
-    global_direction_ray: GlobalDirectionRay,
-    spring_physics_mover: SpringPhysicsMover,
-    rigid_body: RigidBody,
-    collider: Collider,
-    external_force: ExternalForce,
-    velocity: Velocity,
+    pub transform: Transform,
+    pub global_transform: GlobalTransform,
+    pub visibility: Visibility,
+    pub computed_visibility: ComputedVisibility,
+    pub move_target: MoveInput3d,
+    pub global_direction_ray: GlobalDirectionRay,
+    pub spring_physics_mover: SpringPhysicsMover,
+    pub rigid_body: RigidBody,
+    pub collider: Collider,
+    pub external_force: ExternalForce,
+    pub velocity: Velocity,
 }
 
-impl SpringPhysicsMoverBundle {
-    pub fn new(
-        collider: Collider,
-    ) -> Self {
+impl Default for SpringPhysicsMoverBundle {
+    fn default() -> Self {
         Self {
+            transform: Transform::default(),
+            global_transform: GlobalTransform::default(),
+            visibility: Visibility::default(),
+            computed_visibility: ComputedVisibility::default(),
             move_target: MoveInput3d::default(),
             global_direction_ray: GlobalDirectionRay { direction: Vec3::NEG_Y, distance: 10.0, ..default() },
             spring_physics_mover: SpringPhysicsMover::default(),
             rigid_body: RigidBody::Dynamic,
-            collider,
+            collider: Collider::cuboid(0.5, 0.5, 0.5),
             external_force: ExternalForce::default(),
             velocity: Velocity::default(),
         }
