@@ -8,6 +8,8 @@ mod item;
 pub use item::*;
 mod movement;
 pub use movement::*;
+mod part;
+pub use part::*;
 mod projectile;
 pub use projectile::*;
 mod stat;
