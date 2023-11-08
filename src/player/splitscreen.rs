@@ -99,7 +99,7 @@ fn get_two_player_viewport(order: u32, physical_size: Vec2, preference: TwoPlaye
     if preference == TwoPlayerSplitPref::Horizontal {
         Some(Viewport {
             physical_position: UVec2::new(0, (physical_size.y * 0.5) as u32 * order),
-            physical_size: UVec2::new(physical_size.x as u32, (physical_size.y * 0.5) as u32 * order),
+            physical_size: UVec2::new(physical_size.x as u32, (physical_size.y * 0.5) as u32),
             ..default()
         })
     } else {
