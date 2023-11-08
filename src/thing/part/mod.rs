@@ -3,21 +3,85 @@ use crate::*;
 use bevy::{utils::{hashbrown::Equivalent, HashMap}, gltf::{Gltf, GltfMesh, GltfNode}};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#[derive(Default)]
-pub struct PartData {
-    pub sockets: Vec<Vec3>,
-    pub meshes: Vec<Handle<Mesh>>,
-    pub materials: Vec<Handle<StandardMaterial>>,
+#[derive(Component, Default, Debug, Reflect)]
+#[reflect(Component, Default)]
+pub struct Sockets(pub Vec<PartSocket>);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#[derive(Default, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
+#[reflect(Default)]
+pub enum SocketConnector {
+    #[default]
+    /// Only rotates along one axis, connects to any Revolute
+    Revolute,
+    /// Allows free rotation for connected, connects to Female
+    SphereMale,
+    /// Connected cannot rotate, connects to Female
+    FixedMale,
+    /// Follows transform of connected, connects to any Male
+    Female,
+}
+
+#[derive(Default, Clone, Copy, Debug, Reflect)]
+pub struct PartSocket {
+    pub offset: Vec3,
+    pub connector: SocketConnector,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub struct PartsDataMap(HashMap<String, PartData>);
-
-impl Default for PartsDataMap {
-    fn default() -> Self { Self { 0: HashMap::default() } }
+#[derive(Clone, Debug, Reflect)]
+pub struct PartHitbox {
+    pub transform: Transform,
+    pub mesh: Handle<Mesh>,
 }
 
-impl PartsDataMap {
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#[derive(Clone, Debug, Reflect)]
+pub struct PartPrimitiveData {
+    pub mesh: Handle<Mesh>,
+    pub material: Handle<StandardMaterial>,
+}
+
+impl PartPrimitiveData {
+    pub fn new(mesh: Handle<Mesh>, material: Handle<StandardMaterial>) -> Self {
+        Self { mesh, material }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#[derive(Debug, Reflect)]
+pub struct PartData {
+    pub sockets: Vec<PartSocket>,
+    pub primitives: Vec<PartPrimitiveData>,
+    pub hitbox: PartHitbox,
+}
+
+impl PartData {
+    pub fn spawn(&self, transform: Transform, commands: &mut Commands, meshes: &mut ResMut<Assets<Mesh>>) -> Entity {
+        commands.spawn(VisibleTransformBundle { transform, ..default() })
+            .insert(Sockets { 0: self.sockets.clone() })
+            .with_children(|child_builder| {
+                for primitive in self.primitives.iter() {
+                    child_builder.spawn(PbrBundle {
+                        mesh: primitive.mesh.clone(),
+                        material: primitive.material.clone(),
+                        ..default()
+                    });
+                }
+
+                child_builder.spawn(TransformBundle::from_transform(self.hitbox.transform))
+                    .insert(Collider::from_bevy_mesh(meshes.get(&self.hitbox.mesh).unwrap(), &ComputedColliderShape::TriMesh).unwrap())
+                    .insert(Sensor);
+            })
+            .id()
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#[derive(Default)]
+pub struct PartDataMap(HashMap<String, PartData>);
+
+impl PartDataMap {
     pub fn get<Q: ?Sized>(&self, key: &Q) -> Option<&PartData>
     where
         Q: std::hash::Hash + Equivalent<String>,
@@ -38,89 +102,74 @@ impl PartsDataMap {
         let gltf_handle = packages.models.fetch_handle("test_character");
         let gltf = gltf_assets.get(gltf_handle).unwrap();
     
-        let mut parts_data_map = PartsDataMap::default();
-        // let mut primitives_map = HashMap::default();
+        let mut sockets = vec![];
+        let mut hitboxes = vec![];
+        let mut part_map = HashMap::default();
+        
+        // Mesh Transforms & Primitives
         for (node_name, node_handle) in gltf.named_nodes.iter() {
-            println!("{}", node_name);
-            if node_name.contains("Hit") { continue; }
-    
             let node = gltf_node_assets.get(node_handle).unwrap();
-            let gltf_mesh = if let Some(mesh_handle) = &node.mesh {
-                    if let Some(mesh) = gltf_mesh_assets.get(mesh_handle) { mesh } else { continue }
-                } else { continue };
+
+            if node_name.contains("Socket") { sockets.push((node_name, node)); continue; }
+            if node_name.contains("Hitbox") { hitboxes.push((node_name, node)); continue; }
     
-            for child_node in node.children.iter() {
-                println!("Child detected");
-                if let Some(extras) = &child_node.extras { println!("{}", extras.value); }
+            let gltf_mesh = if let Some(mesh) = GltfLoader::try_get_gltf_mesh(node, gltf_mesh_assets) { mesh } else { continue };
+            
+            let mut primitives = vec![];
+            for primitive in gltf_mesh.primitives.iter() {
+                let material = if let Some(material) = &primitive.material { material } else { continue };
+                primitives.push(PartPrimitiveData::new(primitive.mesh.clone(), material.clone()));
             }
     
-    
-            // primitives_map.insert(node_name.clone(), (node.transform, mesh, material));
-            parts_data_map.insert(node_name.clone(), PartData {
-                sockets: vec![],
-                meshes: gltf_mesh.primitives.iter().map(|primitive| { primitive.mesh.clone() }).collect(),
-                materials: gltf_mesh.primitives.iter().map(|primitive| { primitive.material.as_ref().unwrap().clone() }).collect(),
-            });
+            part_map.insert(node_name.clone(), (node.transform, vec![], primitives));
+        }
+
+        // Sockets
+        for (socket_name, socket_node) in sockets.iter().copied() {
+            let socket_str = if let Some(name) = socket_name.strip_prefix("Socket.") { name } else { continue };
+            let split: Vec<&str> = socket_str.split(".").collect();
+            
+            if split.len() < 2 { continue; }
+
+            let socket_offset = socket_node.transform.translation;
+            let (part_0_transform, part_0_sockets, _) = if let Some(part) = part_map.get_mut(split[0]) { part } else { continue };
+            let offset_0 = part_0_transform.translation;
+            
+            let socket_0;
+            let mut socket_1_connector = SocketConnector::Female;
+            if split[1].eq("R") {
+                socket_0 = PartSocket { offset: socket_offset - offset_0, connector: SocketConnector::Revolute };
+                socket_1_connector = SocketConnector::Revolute;
+            } else if split[1].eq("S") {
+                socket_0 = PartSocket { offset: socket_offset - offset_0, connector: SocketConnector::SphereMale };
+            } else {
+                socket_0 = PartSocket { offset: socket_offset - offset_0, connector: SocketConnector::FixedMale };
+            }
+            
+            part_0_sockets.push(socket_0);
+
+            if split.get(2).is_none() { continue; }
+
+            let (part_1_transform, part_1_sockets, _) = if let Some(part) = part_map.get_mut(split[2]) { part } else { continue };
+            let offset_1 = part_1_transform.translation;
+            part_1_sockets.push(PartSocket { offset: socket_offset - offset_1, connector: socket_1_connector });
+        }
+
+        // Hitboxes & Finalization
+        let mut part_data_map = PartDataMap::default();
+        for (hitbox_name, hitbox_node) in hitboxes.iter() {
+            println!("{hitbox_name}");
+            let part_name = if let Some(name) = hitbox_name.strip_prefix("Hitbox.") { name } else { continue };
+            println!("{part_name}");
+            let gltf_mesh = if let Some(mesh) = GltfLoader::try_get_gltf_mesh(hitbox_node, gltf_mesh_assets) { mesh } else { continue };
+            
+            let (sockets, primitives) = if let Some(part) = part_map.get(part_name) { (part.1.clone(), part.2.clone()) } else { continue };
+            let hitbox = PartHitbox { transform: hitbox_node.transform, mesh: gltf_mesh.primitives[0].mesh.clone() };
+
+            println!("{part_name}");
+            part_data_map.insert(part_name.into(), PartData { sockets, primitives, hitbox });
         }
     
-        parts_data_map
-    }
-
-    pub fn from_primitives(
-        meshes: &mut ResMut<Assets<Mesh>>,
-        materials: &mut ResMut<Assets<StandardMaterial>>,
-    ) -> Self {
-        let mut parts_data_map = Self::default();
-    
-        let pelvis_mesh = meshes.add(Mesh::from(shape::Box::new(1.0, 1.0, 1.0)));
-        let pelvis_material = materials.add(StandardMaterial { base_color: Color::RED.into(), ..default() });
-    
-        let stomach_mesh = meshes.add(Mesh::from(shape::Box::new(1.0, 1.0, 1.0)));
-        let stomach_material = materials.add(StandardMaterial { base_color: Color::ORANGE.into(), ..default() });
-    
-        let chest_mesh = meshes.add(Mesh::from(shape::Box::new(1.0, 1.0, 1.0)));
-        let chest_material = materials.add(StandardMaterial { base_color: Color::YELLOW.into(), ..default() });
-    
-        let neck_mesh = meshes.add(Mesh::from(shape::Box::new(1.0, 1.0, 1.0)));
-        let neck_material = materials.add(StandardMaterial { base_color: Color::GREEN.into(), ..default() });
-    
-        let head_mesh = meshes.add(Mesh::from(shape::Box::new(1.0, 1.0, 1.0)));
-        let head_material = materials.add(StandardMaterial { base_color: Color::BLUE.into(), ..default() });
-    
-        let upper_arm_mesh = meshes.add(Mesh::from(shape::Box::new(0.125, 0.125, 0.5)));
-        let lower_arm_mesh = meshes.add(Mesh::from(shape::Box::new(0.1, 0.1, 0.5)));
-        let hand_mesh = meshes.add(Mesh::try_from(shape::Icosphere { radius: 0.1, subdivisions: 5 }).unwrap());
-        let upper_arm_material = materials.add(StandardMaterial { base_color: Color::rgb(0.2, 0.2, 0.2).into(), ..default() });
-        let lower_arm_material = materials.add(StandardMaterial { base_color: Color::rgb(0.35, 0.35, 0.35).into(), ..default() });
-        let hand_material = materials.add(StandardMaterial { base_color: Color::rgb(0.7, 0.7, 0.7).into(), ..default() });
-        
-        let upper_leg_mesh = meshes.add(Mesh::from(shape::Box::new(0.125, 0.125, 0.5)));
-        let lower_leg_mesh = meshes.add(Mesh::from(shape::Box::new(0.1, 0.1, 0.5)));
-        let foot_mesh = meshes.add(Mesh::from(shape::Box::new(0.1, 0.075, 0.2)));
-        let upper_leg_material = materials.add(StandardMaterial { base_color: Color::rgb(0.2, 0.2, 0.2).into(), ..default() });
-        let lower_leg_material = materials.add(StandardMaterial { base_color: Color::rgb(0.35, 0.35, 0.35).into(), ..default() });
-        let foot_material = materials.add(StandardMaterial { base_color: Color::rgb(0.7, 0.7, 0.7).into(), ..default() });
-        
-        parts_data_map.insert("Pelvis".into(), PartData { meshes: vec![pelvis_mesh], materials: vec![pelvis_material], ..default() });
-        parts_data_map.insert("Stomach".into(), PartData { meshes: vec![stomach_mesh], materials: vec![stomach_material], ..default() });
-        parts_data_map.insert("Chest".into(), PartData { meshes: vec![chest_mesh], materials: vec![chest_material], ..default() });
-        parts_data_map.insert("Neck".into(), PartData { meshes: vec![neck_mesh], materials: vec![neck_material], ..default() });
-        parts_data_map.insert("Head".into(), PartData { meshes: vec![head_mesh], materials: vec![head_material], ..default() });
-    
-        parts_data_map.insert("LArmUpper".into(), PartData { meshes: vec![upper_arm_mesh.clone()], materials: vec![upper_arm_material.clone()], ..default() });
-        parts_data_map.insert("LArmLower".into(), PartData { meshes: vec![lower_arm_mesh.clone()], materials: vec![lower_arm_material.clone()], ..default() });
-        parts_data_map.insert("LHand".into(), PartData { meshes: vec![hand_mesh.clone()], materials: vec![hand_material.clone()], ..default() });
-        parts_data_map.insert("RArmUpper".into(), PartData { meshes: vec![upper_arm_mesh], materials: vec![upper_arm_material], ..default() });
-        parts_data_map.insert("RArmLower".into(), PartData { meshes: vec![lower_arm_mesh], materials: vec![lower_arm_material], ..default() });
-        parts_data_map.insert("RHand".into(), PartData { meshes: vec![hand_mesh], materials: vec![hand_material], ..default() });
-    
-        parts_data_map.insert("LLegUpper".into(), PartData { meshes: vec![upper_leg_mesh.clone()], materials: vec![upper_leg_material.clone()], ..default() });
-        parts_data_map.insert("LLegLower".into(), PartData { meshes: vec![lower_leg_mesh.clone()], materials: vec![lower_leg_material.clone()], ..default() });
-        parts_data_map.insert("LFoot".into(), PartData { meshes: vec![foot_mesh.clone()], materials: vec![foot_material.clone()], ..default() });
-        parts_data_map.insert("RLegUpper".into(), PartData { meshes: vec![upper_leg_mesh], materials: vec![upper_leg_material], ..default() });
-        parts_data_map.insert("RLegLower".into(), PartData { meshes: vec![lower_leg_mesh], materials: vec![lower_leg_material], ..default() });
-        parts_data_map.insert("RFoot".into(), PartData { meshes: vec![foot_mesh], materials: vec![foot_material], ..default() });
-    
-        parts_data_map
+        part_data_map
     }
 }
