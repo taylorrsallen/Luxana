@@ -1,5 +1,6 @@
 use crate::*;
 
+use bevy::input::InputSystem;
 use bevy::input::mouse::{MouseWheel, MouseMotion};
 use bevy::input::{keyboard::KeyboardInput, ButtonState, mouse::MouseButtonInput};
 use bevy::input::gamepad::{GamepadButtonChangedEvent, GamepadAxisChangedEvent};
@@ -35,7 +36,7 @@ impl Plugin for TankInputPlugin {
                 sys_gamepad_axis_input,
 
                 sys_update_input_actions,
-            ).chain());
+            ).after(InputSystem).chain());
     }
 }
 
@@ -66,7 +67,7 @@ fn sys_mouse_button_input(
     mut raw_button_input_query: Query<(&mut RawButtonInput, &InputDeviceReceiver)>,
 ) {
     let events: Vec<&MouseButtonInput> = events.iter().collect();
-    for (mut raw_input, device_receiver)in raw_button_input_query.iter_mut() {
+    for (mut raw_input, device_receiver) in raw_button_input_query.iter_mut() {
         // Bevy is shaving off device id, so until we fix that, just check for 0
         if !device_receiver.is_device_enabled(InputDevice::Mouse(0)) { continue; }
         for event in events.iter() {
@@ -89,10 +90,13 @@ fn sys_gamepad_button_input(
             if !device_receiver.is_device_enabled(InputDevice::Gamepad(event.gamepad.id as u8)) { continue; }
             
             let gamepad_button = GamepadButton { gamepad: event.gamepad, button_type: event.button_type };
+            println!("{:?}", gamepad_button);
             if button_input.just_released(gamepad_button) {
                 raw_input.release_gamepad_button(event.button_type);
+                println!("Released");
             } else if button_input.just_pressed(gamepad_button) {
                 raw_input.press_gamepad_button(event.button_type);
+                println!("Pressed");
             }
         }
     }
