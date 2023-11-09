@@ -3,13 +3,12 @@ use crate::*;
 use bevy::{utils::{hashbrown::Equivalent, HashMap}, gltf::{Gltf, GltfMesh, GltfNode}};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#[derive(Component, Default, Debug, Reflect)]
+#[derive(Component, Default, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
 #[reflect(Component, Default)]
-pub struct Sockets(pub Vec<PartSocket>);
+pub struct SocketConnection(pub Option<Entity>);
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-#[derive(Default, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
-#[reflect(Default)]
+#[derive(Component, Default, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
+#[reflect(Component, Default)]
 pub enum SocketConnector {
     #[default]
     /// Only rotates along one axis, connects to any Revolute
@@ -59,8 +58,13 @@ pub struct PartData {
 impl PartData {
     pub fn spawn(&self, transform: Transform, commands: &mut Commands, meshes: &mut ResMut<Assets<Mesh>>) -> Entity {
         commands.spawn(VisibleTransformBundle { transform, ..default() })
-            .insert(Sockets { 0: self.sockets.clone() })
             .with_children(|child_builder| {
+                for socket in self.sockets.iter() {
+                    child_builder.spawn(TransformBundle::from_transform(Transform::from_translation(socket.offset)))
+                        .insert(SocketConnection::default())
+                        .insert(socket.connector);
+                }
+
                 for primitive in self.primitives.iter() {
                     child_builder.spawn(PbrBundle {
                         mesh: primitive.mesh.clone(),
@@ -70,6 +74,8 @@ impl PartData {
                 }
 
                 child_builder.spawn(TransformBundle::from_transform(self.hitbox.transform))
+                    .insert(VisibilityBundle::default())
+                    .insert(RigidBody::KinematicPositionBased)
                     .insert(Collider::from_bevy_mesh(meshes.get(&self.hitbox.mesh).unwrap(), &ComputedColliderShape::TriMesh).unwrap())
                     .insert(Sensor);
             })
