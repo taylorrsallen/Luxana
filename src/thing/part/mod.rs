@@ -119,11 +119,11 @@ impl PartDataMap {
             if node_name.contains("Socket") { sockets.push((node_name, node)); continue; }
             if node_name.contains("Hitbox") { hitboxes.push((node_name, node)); continue; }
     
-            let gltf_mesh = if let Some(mesh) = GltfLoader::try_get_gltf_mesh(node, gltf_mesh_assets) { mesh } else { continue };
+            let Some(gltf_mesh) = GltfLoader::try_get_gltf_mesh(node, gltf_mesh_assets) else { continue };
             
             let mut primitives = vec![];
             for primitive in gltf_mesh.primitives.iter() {
-                let material = if let Some(material) = &primitive.material { material } else { continue };
+                let Some(material) = &primitive.material else { continue };
                 primitives.push(PartPrimitiveData::new(primitive.mesh.clone(), material.clone()));
             }
     
@@ -132,13 +132,13 @@ impl PartDataMap {
 
         // Sockets
         for (socket_name, socket_node) in sockets.iter().copied() {
-            let socket_str = if let Some(name) = socket_name.strip_prefix("Socket.") { name } else { continue };
+            let Some(socket_str) = socket_name.strip_prefix("Socket.") else { continue };
             let split: Vec<&str> = socket_str.split(".").collect();
             
             if split.len() < 2 { continue; }
 
             let socket_offset = socket_node.transform.translation;
-            let (part_0_transform, part_0_sockets, _) = if let Some(part) = part_map.get_mut(split[0]) { part } else { continue };
+            let Some((part_0_transform, part_0_sockets, _)) = part_map.get_mut(split[0]) else { continue };
             let offset_0 = part_0_transform.translation;
             
             let socket_0;
@@ -156,7 +156,7 @@ impl PartDataMap {
 
             if split.get(2).is_none() { continue; }
 
-            let (part_1_transform, part_1_sockets, _) = if let Some(part) = part_map.get_mut(split[2]) { part } else { continue };
+            let Some((part_1_transform, part_1_sockets, _)) = part_map.get_mut(split[2]) else { continue };
             let offset_1 = part_1_transform.translation;
             part_1_sockets.push(PartSocket { offset: socket_offset - offset_1, connector: socket_1_connector });
         }
@@ -164,16 +164,13 @@ impl PartDataMap {
         // Hitboxes & Finalization
         let mut part_data_map = PartDataMap::default();
         for (hitbox_name, hitbox_node) in hitboxes.iter() {
-            println!("{hitbox_name}");
-            let part_name = if let Some(name) = hitbox_name.strip_prefix("Hitbox.") { name } else { continue };
-            println!("{part_name}");
-            let gltf_mesh = if let Some(mesh) = GltfLoader::try_get_gltf_mesh(hitbox_node, gltf_mesh_assets) { mesh } else { continue };
+            let Some(part_name) = hitbox_name.strip_prefix("Hitbox.") else { continue };
+            let Some(gltf_mesh) = GltfLoader::try_get_gltf_mesh(hitbox_node, gltf_mesh_assets) else { continue };
             
-            let (sockets, primitives) = if let Some(part) = part_map.get(part_name) { (part.1.clone(), part.2.clone()) } else { continue };
+            let Some((_, sockets, primitives)) = part_map.get(part_name) else { continue };
             let hitbox = PartHitbox { transform: hitbox_node.transform, mesh: gltf_mesh.primitives[0].mesh.clone() };
 
-            println!("{part_name}");
-            part_data_map.insert(part_name.into(), PartData { sockets, primitives, hitbox });
+            part_data_map.insert(part_name.into(), PartData { sockets: sockets.clone(), primitives: primitives.clone(), hitbox });
         }
     
         part_data_map
