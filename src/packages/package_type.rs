@@ -15,13 +15,8 @@ impl<T: Asset> PackageType<T> {
         Self { name, extension, ids: HashMap::default(), assets: vec![] }
     }
 
-    pub fn handle(&self, id: u32) -> &Handle<T> {
-        &self.assets[id as usize]
-    }
-
-    pub fn fetch_handle(&self, asset: &str) -> &Handle<T> {
-        self.handle(self.fetch_id(asset))
-    }
+    pub fn handle(&self, id: u32) -> &Handle<T> { &self.assets[id as usize] }
+    pub fn fetch_handle(&self, asset: &str) -> &Handle<T> { self.handle(self.fetch_id(asset)) }
 
     pub fn fetch_id(&self, asset: &str) -> u32 {
         if let Some(id) = self.ids.get(&(self.name.to_owned() + "/" + asset)) {
@@ -60,6 +55,14 @@ impl<T: Asset> PackageType<T> {
     }
 
     pub fn get_load_state(&self, asset_server: &Res<AssetServer>) -> LoadState {
-        asset_server.get_group_load_state(self.assets.iter().map(|handle| handle.id()))
+        for id in self.assets.iter().map(|handle| handle.id()) {
+            let load_state = if let Some(state) = asset_server.get_load_state(id) { state } else { continue };
+            match load_state {
+                LoadState::Loaded => { continue; },
+                _ => { return load_state; }
+            }
+        }
+
+        LoadState::Loaded
     }
 }

@@ -10,16 +10,16 @@ opt-level = 2
 opt-level = 3
 
 [dependencies]
-bevy = { version = "0.11", features = ["serialize"] }
+bevy = { version = "0.12", features = ["serialize"] }
 
 winit = { version = "0.28.7" }
 image = { version = "0.24" }
 
 # Physics
-bevy_rapier3d = { version = "0.22", features = ["debug-render", "serde-serialize"] }
+bevy_rapier3d = { version = "0.23", features = ["debug-render", "serde-serialize"] }
 
 # Audio
-bevy_kira_audio = "0.17.0"
+bevy_kira_audio = "0.18.0"
 
 # Rendering
 # bevy_hanabi = "0.7" # (Currently unused)
@@ -27,10 +27,10 @@ bevy_kira_audio = "0.17.0"
 
 # UI
 taffy = { version = "0.3.10" }
-bevy_egui = "0.22.0"
+bevy_egui = "0.23.0"
 
 # Debug
-bevy-inspector-egui = "0.20.0"
+bevy-inspector-egui = "0.21.0"
 
 # Util
 num = "0.4"

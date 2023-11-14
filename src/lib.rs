@@ -8,7 +8,7 @@ pub use bevy::prelude::*;
 use bevy::{
     render::{
         RenderPlugin,
-        settings::{WgpuSettings, WgpuFeatures}
+        settings::{WgpuSettings, WgpuFeatures, RenderCreation}
     },
     pbr::wireframe::WireframePlugin,
     winit::WinitWindows,
@@ -69,10 +69,10 @@ impl Plugin for TankPlugin {
                     ..default()
                 })
                 .set(RenderPlugin {
-                    wgpu_settings: WgpuSettings {
+                    render_creation: RenderCreation::Automatic(WgpuSettings {
                         features: WgpuFeatures::POLYGON_MODE_LINE,
                         ..default()
-                    }
+                    })
                 })
                 .set(ImagePlugin::default_nearest())
             )
