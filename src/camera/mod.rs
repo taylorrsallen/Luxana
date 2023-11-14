@@ -1,6 +1,19 @@
 use crate::*;
 
-use bevy::{render::{camera::{RenderTarget, Viewport, camera_system}, view::VisibilitySystems}, window::{WindowRef, PrimaryWindow}, transform::TransformSystem, pbr::{ScreenSpaceAmbientOcclusionBundle, ScreenSpaceAmbientOcclusionSettings, ScreenSpaceAmbientOcclusionQualityLevel}, core_pipeline::{clear_color::ClearColorConfig, tonemapping::Tonemapping}};
+use bevy::{
+    render::{
+        camera::{RenderTarget, Viewport, camera_system},
+        view::VisibilitySystems
+    },
+    window::{WindowRef, PrimaryWindow},
+    transform::TransformSystem,
+    pbr::{
+        ScreenSpaceAmbientOcclusionBundle,
+        ScreenSpaceAmbientOcclusionSettings,
+        ScreenSpaceAmbientOcclusionQualityLevel
+    },
+    core_pipeline::{clear_color::ClearColorConfig, tonemapping::Tonemapping}
+};
 
 mod anchor;
 pub use anchor::*;
@@ -130,7 +143,7 @@ pub struct MainCameraBundle {
     pub camera_3d: Camera3dBundle,
     pub audio_receiver: AudioReceiver,
     pub fog_settings: FogSettings,
-    pub ssao_bundle: ScreenSpaceAmbientOcclusionBundle,
+    // pub ssao_bundle: ScreenSpaceAmbientOcclusionBundle,
 }
 
 impl Default for MainCameraBundle {
@@ -149,7 +162,7 @@ impl Default for MainCameraBundle {
                 directional_light_exponent: 500.0,
                 falloff: FogFalloff::from_visibility_colors(20.0, Color::rgb(0.35, 0.5, 0.66), Color::rgb(0.8, 0.844, 1.0))
             },
-            ssao_bundle: ScreenSpaceAmbientOcclusionBundle::default(),
+            // ssao_bundle: ScreenSpaceAmbientOcclusionBundle::default(),
         }
     }
 }
