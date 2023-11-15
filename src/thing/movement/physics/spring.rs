@@ -17,14 +17,14 @@ impl Plugin for TankSpringPhysicsMovementPlugin {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #[derive(Bundle)]
 pub struct SpringPhysicsMoverBundle {
+    pub spring_physics_mover: SpringPhysicsMover,
+    pub move_target: MoveInput3d,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
     pub visibility: Visibility,
     pub inherited_visibility: InheritedVisibility,
     pub view_visibility: ViewVisibility,
-    pub move_target: MoveInput3d,
     pub global_direction_ray: GlobalDirectionRay,
-    pub spring_physics_mover: SpringPhysicsMover,
     pub rigid_body: RigidBody,
     pub collider: Collider,
     pub external_force: ExternalForce,
@@ -57,14 +57,14 @@ impl Default for SpringPhysicsMoverBundle {
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct SpringPhysicsMover {
-    speed: f32,
-    max_acceleration: f32,
-    ride_height: f32,
-    ride_spring_strength: f32,
-    ride_spring_damper: f32,
-    upright_rotation: Quat,
-    upright_spring_strength: f32,
-    upright_spring_damper: f32,
+    pub speed: f32,
+    pub max_acceleration: f32,
+    pub ride_height: f32,
+    pub ride_spring_strength: f32,
+    pub ride_spring_damper: f32,
+    pub upright_rotation: Quat,
+    pub upright_spring_strength: f32,
+    pub upright_spring_damper: f32,
 }
 
 impl Default for SpringPhysicsMover {

@@ -12,8 +12,13 @@ impl Plugin for TankThingMovementFixedPlugin {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #[derive(Bundle, Default)]
 pub struct FixedMoverBundle {
-    pub move_target: MoveInput3d,
     pub fixed_mover: FixedMover,
+    pub move_target: MoveInput3d,
+    pub transform: Transform,
+    pub global_transform: GlobalTransform,
+    pub visibility: Visibility,
+    pub inherited_visibility: InheritedVisibility,
+    pub view_visibility: ViewVisibility,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -23,7 +28,7 @@ pub struct FixedMover {
 }
 
 impl Default for FixedMover {
-    fn default() -> Self { Self { speed: 1.0 } }
+    fn default() -> Self { Self { speed: 10.0 } }
 }
 
 fn sys_update_fixed_mover(
