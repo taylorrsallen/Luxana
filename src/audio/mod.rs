@@ -33,7 +33,7 @@ fn evsys_play_audio_ui(
     audio: Res<Audio>,
     packages: Res<Packages>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         audio.play(packages.sounds.handle(event.sound_id).clone())
             .with_volume(event.volume as f64);
     }

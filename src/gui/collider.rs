@@ -101,7 +101,7 @@ fn evsys_update_gui_colliding_entities(
     mut collision_events: EventReader<GuiCollisionEvent>,
     mut colliding_entities: Query<&mut GuiCollidingEntities>,
 ) {
-    for event in collision_events.iter() {
+    for event in collision_events.read() {
         match event.to_owned() {
             GuiCollisionEvent::Started(entity0, entity1) => {
                 if let Ok(mut entities) = colliding_entities.get_mut(entity0) { entities.0.insert(entity1); }

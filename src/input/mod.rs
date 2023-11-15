@@ -48,7 +48,7 @@ fn sys_keyboard_input(
     mut events: EventReader<KeyboardInput>,
     mut raw_button_input_query: Query<(&mut RawButtonInput, &InputDeviceReceiver)>,
 ) {
-    let events: Vec<&KeyboardInput> = events.iter().collect();
+    let events: Vec<&KeyboardInput> = events.read().collect();
     for (mut raw_input, device_receiver) in raw_button_input_query.iter_mut() {
         // Bevy is shaving off device id, so until we fix that, just check for 0
         if !device_receiver.is_device_enabled(InputDevice::Keyboard(0)) { continue; }
@@ -66,7 +66,7 @@ fn sys_mouse_button_input(
     mut events: EventReader<MouseButtonInput>,
     mut raw_button_input_query: Query<(&mut RawButtonInput, &InputDeviceReceiver)>,
 ) {
-    let events: Vec<&MouseButtonInput> = events.iter().collect();
+    let events: Vec<&MouseButtonInput> = events.read().collect();
     for (mut raw_input, device_receiver) in raw_button_input_query.iter_mut() {
         // Bevy is shaving off device id, so until we fix that, just check for 0
         if !device_receiver.is_device_enabled(InputDevice::Mouse(0)) { continue; }
@@ -84,7 +84,7 @@ fn sys_gamepad_button_input(
     mut raw_button_input_query: Query<(&mut RawButtonInput, &InputDeviceReceiver)>,
     button_input: ResMut<Input<GamepadButton>>,
 ) {
-    let events: Vec<&GamepadButtonChangedEvent> = events.iter().collect();
+    let events: Vec<&GamepadButtonChangedEvent> = events.read().collect();
     for (mut raw_input, device_receiver) in raw_button_input_query.iter_mut() {
         for event in events.iter() {
             if !device_receiver.is_device_enabled(InputDevice::Gamepad(event.gamepad.id as u8)) { continue; }
@@ -107,8 +107,8 @@ fn sys_mouse_axis_input(
     mut mouse_wheel_events: EventReader<MouseWheel>,
     mut raw_axis_input_query: Query<(&mut RawAxisInput, &InputDeviceReceiver)>,
 ) {
-    let mouse_motion_events: Vec<&MouseMotion> = mouse_motion_events.iter().collect();
-    let mouse_wheel_events: Vec<&MouseWheel> = mouse_wheel_events.iter().collect();
+    let mouse_motion_events: Vec<&MouseMotion> = mouse_motion_events.read().collect();
+    let mouse_wheel_events: Vec<&MouseWheel> = mouse_wheel_events.read().collect();
     for (mut raw_axis_input, device_receiver) in raw_axis_input_query.iter_mut() {
         if !device_receiver.is_device_enabled(InputDevice::Mouse(0)) { continue; }
 
@@ -128,7 +128,7 @@ fn sys_gamepad_axis_input(
     mut events: EventReader<GamepadAxisChangedEvent>,
     mut raw_axis_input_query: Query<(&mut RawAxisInput, &InputDeviceReceiver)>,
 ) {
-    let events: Vec<&GamepadAxisChangedEvent> = events.iter().collect();
+    let events: Vec<&GamepadAxisChangedEvent> = events.read().collect();
     for (mut raw_axis_input, device_receiver) in raw_axis_input_query.iter_mut() {
         for event in events.iter() {
             if !device_receiver.is_device_enabled(InputDevice::Gamepad(event.gamepad.id as u8)) { continue; }
