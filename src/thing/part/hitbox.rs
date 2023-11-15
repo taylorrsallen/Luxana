@@ -10,7 +10,7 @@ pub enum HitboxShape {
 }
 
 impl HitboxShape {
-    fn from_shape_name(name: &str) -> Self {
+    pub fn from_shape_name(name: &str) -> Self {
         match name {
             "Cube" => Self::Cube,
             "Sphere" => Self::Sphere,
@@ -21,7 +21,7 @@ impl HitboxShape {
 
     pub fn collider(&self) -> Collider {
         match self {
-            Self::Cube => { Collider::cuboid(0.5, 0.5, 0.5) },
+            Self::Cube => { Collider::cuboid(1.0, 1.0, 1.0) },
             Self::Sphere => { Collider::ball(0.5) }
             Self::Capsule => { Collider::capsule_y(1.0, 0.5) }
         }

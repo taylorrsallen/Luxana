@@ -26,6 +26,7 @@ impl Plugin for TankThingPlugin {
                 TankThingInteractorPlugin,
                 TankThingItemPlugin,
                 TankThingMovementPlugin,
+                TankThingPartPlugin,
                 TankThingProjectilePlugin,
                 TankThingStatPlugin,
                 TankThingTurretPlugin,

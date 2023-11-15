@@ -62,6 +62,38 @@ impl PartSocket {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+pub fn sys_update_socket_connections(
+    mut commands: Commands,
+    mut transform_query: Query<&mut Transform>,
+    changed_socket_query: Query<Entity, Changed<SocketConnection>>,
+    socket_query: Query<(&SocketConnection, &Parent)>,
+    part_query: Query<&Children, With<PartMarker>>,
+) {
+    // fn update_socket_connection_recursive(
+    //     base_entity: Entity,
+    //     commands: &mut Commands,
+    //     transform_query: &mut Query<&mut Transform>,
+    //     socket_query: &Query<(&SocketConnection, &Parent)>,
+    //     part_query: &Query<&Children, With<PartMarker>>,
+    // ) {
+
+    // }
+
+    changed_socket_query.for_each(|base_entity| {
+        let Ok((base_connection, base_parent)) = socket_query.get(base_entity) else { return };
+        let Some(connected_entity) = base_connection.0.clone() else { return };
+        let Ok((_, connected_parent)) = socket_query.get(connected_entity) else { return };
+
+        if base_parent.get() == connected_parent.get() { return; }
+        if !part_query.contains(base_parent.get()) || !part_query.contains(connected_parent.get()) { return; }
+
+        let Ok(mut connected_parent_transform) = transform_query.get_mut(connected_parent.get()) else { return };
+        connected_parent_transform.translation = Vec3::ZERO;
+        commands.entity(connected_parent.get()).set_parent(base_entity);
+    });
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 #[derive(Bundle, Default)]
 pub struct SocketBundle {
     pub transform: Transform,
