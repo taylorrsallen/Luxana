@@ -72,7 +72,7 @@ impl Default for SpringPhysicsMover {
         Self {
             speed: 5.0,
             max_acceleration: 20.0,
-            ride_height: 2.0,
+            ride_height: 1.5,
             ride_spring_strength: 25.0,
             ride_spring_damper: 3.0,
             upright_rotation: Quat::IDENTITY,
