@@ -1,38 +1,11 @@
 use crate::*;
 
+mod hitbox;
+pub use hitbox::*;
+mod socket;
+pub use socket::*;
+
 use bevy::{utils::{hashbrown::Equivalent, HashMap}, gltf::{Gltf, GltfMesh, GltfNode}};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-#[derive(Component, Default, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
-#[reflect(Component, Default)]
-pub struct SocketConnection(pub Option<Entity>);
-
-#[derive(Component, Default, PartialEq, Eq, Clone, Copy, Hash, Debug, Reflect)]
-#[reflect(Component, Default)]
-pub enum SocketConnector {
-    #[default]
-    /// Only rotates along one axis, connects to any Revolute
-    Revolute,
-    /// Allows free rotation for connected, connects to Female
-    SphereMale,
-    /// Connected cannot rotate, connects to Female
-    FixedMale,
-    /// Follows transform of connected, connects to any Male
-    Female,
-}
-
-#[derive(Default, Clone, Copy, Debug, Reflect)]
-pub struct PartSocket {
-    pub offset: Vec3,
-    pub connector: SocketConnector,
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-#[derive(Clone, Debug, Reflect)]
-pub struct PartHitbox {
-    pub transform: Transform,
-    pub mesh: Handle<Mesh>,
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #[derive(Clone, Debug, Reflect)]
@@ -48,36 +21,25 @@ impl PartPrimitiveData {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#[derive(Debug, Reflect)]
+#[derive(Default, Debug, Reflect)]
 pub struct PartData {
     pub sockets: Vec<PartSocket>,
     pub primitives: Vec<PartPrimitiveData>,
-    pub hitbox: PartHitbox,
+    pub hitbox: Option<PartHitbox>,
 }
 
 impl PartData {
     pub fn spawn(&self, transform: Transform, commands: &mut Commands, meshes: &mut ResMut<Assets<Mesh>>) -> Entity {
         commands.spawn(VisibleTransformBundle { transform, ..default() })
             .with_children(|child_builder| {
-                for socket in self.sockets.iter() {
-                    child_builder.spawn(TransformBundle::from_transform(Transform::from_translation(socket.offset)))
-                        .insert(SocketConnection::default())
-                        .insert(socket.connector);
-                }
+                for socket in self.sockets.iter() { child_builder.spawn(SocketBundle::new(socket)); }
+                if let Some(hitbox) = &self.hitbox { child_builder.spawn(PartHitboxBundle::new(hitbox)); }
 
                 for primitive in self.primitives.iter() {
-                    child_builder.spawn(PbrBundle {
-                        mesh: primitive.mesh.clone(),
-                        material: primitive.material.clone(),
-                        ..default()
-                    });
+                    child_builder.spawn(PbrBundle { mesh: primitive.mesh.clone(), material: primitive.material.clone(), ..default() });
+                    // child_builder.spawn(SpatialBundle::default())
+                    //     .insert(InstancedObject);
                 }
-
-                child_builder.spawn(TransformBundle::from_transform(self.hitbox.transform))
-                    .insert(VisibilityBundle::default())
-                    .insert(RigidBody::KinematicPositionBased)
-                    .insert(Collider::from_bevy_mesh(meshes.get(&self.hitbox.mesh).unwrap(), &ComputedColliderShape::TriMesh).unwrap())
-                    .insert(Sensor);
             })
             .id()
     }
@@ -100,24 +62,23 @@ impl PartDataMap {
     }
 
     pub fn from_gltf(
+        gltf_handle: &Handle<Gltf>,
         gltf_assets: &Res<Assets<Gltf>>,
         gltf_mesh_assets: &Res<Assets<GltfMesh>>,
         gltf_node_assets: &Res<Assets<GltfNode>>,
-        packages: &Res<Packages>,
     ) -> Self {
-        let gltf_handle = packages.models.fetch_handle("test_character");
         let gltf = gltf_assets.get(gltf_handle).unwrap();
     
-        let mut sockets = vec![];
-        let mut hitboxes = vec![];
+        let mut socket_nodes = vec![];
+        let mut hitbox_nodes = vec![];
         let mut part_map = HashMap::default();
         
         // Mesh Transforms & Primitives
         for (node_name, node_handle) in gltf.named_nodes.iter() {
             let node = gltf_node_assets.get(node_handle).unwrap();
 
-            if node_name.contains("Socket") { sockets.push((node_name, node)); continue; }
-            if node_name.contains("Hitbox") { hitboxes.push((node_name, node)); continue; }
+            if node_name.contains("Socket") { socket_nodes.push((node_name, node)); continue; }
+            if node_name.contains("Hitbox") { hitbox_nodes.push((node_name, node)); continue; }
     
             let Some(gltf_mesh) = GltfLoader::try_get_gltf_mesh(node, gltf_mesh_assets) else { continue };
             
@@ -127,50 +88,35 @@ impl PartDataMap {
                 primitives.push(PartPrimitiveData::new(primitive.mesh.clone(), material.clone()));
             }
     
-            part_map.insert(node_name.clone(), (node.transform, vec![], primitives));
+            part_map.insert(node_name.clone(), (node.transform, PartData { primitives, ..default() }));
         }
 
         // Sockets
-        for (socket_name, socket_node) in sockets.iter().copied() {
+        for (socket_name, socket_node) in socket_nodes.iter().copied() {
             let Some(socket_str) = socket_name.strip_prefix("Socket.") else { continue };
             let split: Vec<&str> = socket_str.split(".").collect();
             
             if split.len() < 2 { continue; }
+            let socket_0_part_name = split[0];
+            let socket_0_name = split[1];
 
-            let socket_offset = socket_node.transform.translation;
-            let Some((part_0_transform, part_0_sockets, _)) = part_map.get_mut(split[0]) else { continue };
-            let offset_0 = part_0_transform.translation;
-            
-            let socket_0;
-            let mut socket_1_connector = SocketConnector::Female;
-            if split[1].eq("R") {
-                socket_0 = PartSocket { offset: socket_offset - offset_0, connector: SocketConnector::Revolute };
-                socket_1_connector = SocketConnector::Revolute;
-            } else if split[1].eq("S") {
-                socket_0 = PartSocket { offset: socket_offset - offset_0, connector: SocketConnector::SphereMale };
-            } else {
-                socket_0 = PartSocket { offset: socket_offset - offset_0, connector: SocketConnector::FixedMale };
-            }
-            
-            part_0_sockets.push(socket_0);
+            let Some((part_0_transform, part_0_data)) = part_map.get_mut(socket_0_part_name) else { continue };
+            part_0_data.sockets.push(PartSocket::from_primary_socket_node(socket_0_name, socket_node.transform, part_0_transform.translation));
 
-            if split.get(2).is_none() { continue; }
-
-            let Some((part_1_transform, part_1_sockets, _)) = part_map.get_mut(split[2]) else { continue };
+            let socket_1_part_name = if let Some(name) = split.get(2) { *name } else { continue };
+            let Some((part_1_transform, part_1_data)) = part_map.get_mut(socket_1_part_name) else { continue };
             let offset_1 = part_1_transform.translation;
-            part_1_sockets.push(PartSocket { offset: socket_offset - offset_1, connector: socket_1_connector });
+            part_1_data.sockets.push(PartSocket::from_secondary_socket_node(socket_node.transform, part_1_transform.translation));
         }
 
         // Hitboxes & Finalization
         let mut part_data_map = PartDataMap::default();
-        for (hitbox_name, hitbox_node) in hitboxes.iter() {
-            let Some(part_name) = hitbox_name.strip_prefix("Hitbox.") else { continue };
+        for (hitbox_name, hitbox_node) in hitbox_nodes.iter().copied() {
+            let Some((part_name, hitbox_shape)) = PartHitbox::part_name_and_hitbox_shape_from_hitbox_name(hitbox_name) else { continue };
             let Some(gltf_mesh) = GltfLoader::try_get_gltf_mesh(hitbox_node, gltf_mesh_assets) else { continue };
-            
-            let Some((_, sockets, primitives)) = part_map.get(part_name) else { continue };
-            let hitbox = PartHitbox { transform: hitbox_node.transform, mesh: gltf_mesh.primitives[0].mesh.clone() };
+            let Some((_, part_data)) = part_map.get_mut(part_name) else { continue };
 
-            part_data_map.insert(part_name.into(), PartData { sockets: sockets.clone(), primitives: primitives.clone(), hitbox });
+            part_data.hitbox = Some(PartHitbox { transform: hitbox_node.transform, shape: hitbox_shape });
         }
     
         part_data_map
