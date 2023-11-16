@@ -35,6 +35,8 @@ mod packages;
 pub use packages::*;
 mod player;
 pub use player::*;
+mod render;
+pub use render::*;
 mod state;
 pub use state::*;
 mod thing;
@@ -99,6 +101,7 @@ impl Plugin for TankPlugin {
                 TankGuiPlugin,
                 TankPackagesPlugin,
                 TankPlayerPlugin,
+                TankRenderPlugin,
                 TankStatePlugin,
                 TankThingPlugin,
                 TankUtilPlugin,

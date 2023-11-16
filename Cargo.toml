@@ -34,6 +34,7 @@ bevy-inspector-egui = "0.21.0"
 
 # Util
 num = "0.4"
+bytemuck = "1.14"
 
 # Serialization
 serde = "1.0"
