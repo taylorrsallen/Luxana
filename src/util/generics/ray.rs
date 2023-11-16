@@ -42,6 +42,7 @@ pub struct LocalDirectionRay {
     pub offset: Vec3,
     pub direction: Vec3,
     pub distance: f32,
+    pub filter_groups: Option<CollisionGroups>,
     #[reflect(ignore)]
     pub hit: Option<(Entity, RayIntersection)>,
 }
@@ -51,7 +52,8 @@ fn sys_update_local_direction_ray(
     rapier_context: Res<RapierContext>,
 ) {
     for (entity, mut ray, transform) in ray_query.iter_mut() {
-        let filter = QueryFilter::new().exclude_collider(entity).exclude_sensors();
+        let mut filter = QueryFilter::new().exclude_collider(entity).exclude_sensors();
+        filter.groups = ray.filter_groups;
         let ray_origin = transform.translation + ray.offset;
         let ray_direction = transform.right() * ray.direction.x + transform.up() * ray.direction.y + transform.forward() * ray.direction.z;
         ray.hit = rapier_context.cast_ray_and_get_normal(ray_origin, ray_direction, ray.distance, true, filter);

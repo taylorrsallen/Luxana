@@ -54,6 +54,9 @@ impl Default for SpringPhysicsMoverBundle {
 /// Uses a downward raycast to create a spring force which will float attached Thing at ride_height above the ground.
 /// 
 /// Uses spring rotation to rotate the Thing towards the direction of movement, supplied by [MoveInput3d].
+/// 
+/// TODO: If you make the collider too small, rapier will move the object to NaN. Seems to be caused by low mass.
+/// Can be solved by increasing the mass using [ColliderMassProperties].
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct SpringPhysicsMover {
@@ -72,7 +75,7 @@ impl Default for SpringPhysicsMover {
         Self {
             speed: 5.0,
             max_acceleration: 20.0,
-            ride_height: 1.5,
+            ride_height: 1.1,
             ride_spring_strength: 25.0,
             ride_spring_damper: 3.0,
             upright_rotation: Quat::IDENTITY,
