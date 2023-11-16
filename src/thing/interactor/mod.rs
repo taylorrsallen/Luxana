@@ -1,16 +1,12 @@
 use crate::*;
 
-mod grabber;
-pub use grabber::*;
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 pub struct TankThingInteractorPlugin;
 impl Plugin for TankThingInteractorPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<Actor>()
-            .add_plugins((
-                TankThingInteractorGrabberPlugin,
-            ));   
+            .register_type::<Grabber>();
+        
     }
 }
 
@@ -21,3 +17,25 @@ impl Plugin for TankThingInteractorPlugin {
 pub struct Actor {
     pub interactors: Vec<Entity>,
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#[derive(Reflect)]
+pub struct GrabInteraction {
+    pub entity: Entity,
+    /// From origin of grabbed entity.
+    pub offset: Vec3,
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// An entity that can grab things, LittleBigPlanet style.
+/// 
+/// Required for equipping [HeldEquippable]s, but does not have the functionality without [EquipSlot].
+#[derive(Component, Default, Reflect)]
+#[reflect(Component, Default)]
+pub struct Grabber {
+    interaction: Option<GrabInteraction>,
+}
+
+#[derive(Component, Default, Reflect)]
+#[reflect(Component, Default)]
+pub struct EquipSlot;
