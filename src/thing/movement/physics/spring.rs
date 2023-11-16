@@ -19,6 +19,7 @@ impl Plugin for TankSpringPhysicsMovementPlugin {
 pub struct SpringPhysicsMoverBundle {
     pub spring_physics_mover: SpringPhysicsMover,
     pub move_target: MoveInput3d,
+    pub mover_state: MoverState,
     pub transform: Transform,
     pub global_transform: GlobalTransform,
     pub visibility: Visibility,
@@ -34,14 +35,15 @@ pub struct SpringPhysicsMoverBundle {
 impl Default for SpringPhysicsMoverBundle {
     fn default() -> Self {
         Self {
+            spring_physics_mover: SpringPhysicsMover::default(),
+            move_target: MoveInput3d::default(),
+            mover_state: MoverState::default(),
             transform: Transform::default(),
             global_transform: GlobalTransform::default(),
             visibility: Visibility::default(),
             inherited_visibility: InheritedVisibility::default(),
             view_visibility: ViewVisibility::default(),
-            move_target: MoveInput3d::default(),
             global_direction_ray: GlobalDirectionRay { direction: Vec3::NEG_Y, distance: 10.0, ..default() },
-            spring_physics_mover: SpringPhysicsMover::default(),
             rigid_body: RigidBody::Dynamic,
             collider: Collider::cuboid(0.5, 0.5, 0.5),
             external_force: ExternalForce::default(),
@@ -61,7 +63,9 @@ impl Default for SpringPhysicsMoverBundle {
 #[reflect(Component)]
 pub struct SpringPhysicsMover {
     pub speed: f32,
-    pub max_acceleration: f32,
+    pub jump_strength: f32,
+    pub max_speed_accel: f32,
+    pub max_jump_accel: f32,
     pub ride_height: f32,
     pub ride_spring_strength: f32,
     pub ride_spring_damper: f32,
@@ -74,10 +78,12 @@ impl Default for SpringPhysicsMover {
     fn default() -> Self {
         Self {
             speed: 5.0,
-            max_acceleration: 20.0,
-            ride_height: 1.1,
-            ride_spring_strength: 25.0,
-            ride_spring_damper: 3.0,
+            jump_strength: 10.0,
+            max_speed_accel: 20.0,
+            max_jump_accel: 365.0,
+            ride_height: 0.9,
+            ride_spring_strength: 220.0,
+            ride_spring_damper: 20.0,
             upright_rotation: Quat::IDENTITY,
             upright_spring_strength: 25.0,
             upright_spring_damper: 3.0,
@@ -87,37 +93,53 @@ impl Default for SpringPhysicsMover {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 fn sys_update_physics_movement(
-    mut mover_query: Query<(&mut Velocity, &SpringPhysicsMover, &MoveInput3d)>,
+    mut mover_query: Query<(&mut Velocity, &SpringPhysicsMover, &MoveInput3d, &MoverState)>,
     time: Res<Time>,
 ) {
-    for (mut velocity, mover, target) in mover_query.iter_mut() {
-        let max_speed_change = mover.max_acceleration * time.delta_seconds();
-        velocity.linvel.x = Math::move_towards_f32(velocity.linvel.x, target.0.x * mover.speed, max_speed_change);
-        velocity.linvel.z = Math::move_towards_f32(velocity.linvel.z, target.0.z * mover.speed, max_speed_change);
+    for (mut velocity, mover, input, state) in mover_query.iter_mut() {
+        if !state.is_grounded() { continue; }
+
+        let mut input = input.0;
+
+        if input.y > 0.0 {
+            let max_jump_change = mover.max_jump_accel * time.delta_seconds();
+            velocity.linvel.y = Math::move_towards_f32(velocity.linvel.y, input.y * mover.jump_strength, max_jump_change);
+            input.x *= 1.2;
+            input.z *= 1.2;
+        }
+
+        let max_speed_change = mover.max_speed_accel * time.delta_seconds();
+        velocity.linvel.x = Math::move_towards_f32(velocity.linvel.x, input.x * mover.speed, max_speed_change);
+        velocity.linvel.z = Math::move_towards_f32(velocity.linvel.z, input.z * mover.speed, max_speed_change);
     }
 }
 
 fn sys_update_ride_force(
     mut force_query: Query<&mut ExternalForce>,
+    mut mover_state_query: Query<&mut MoverState>,
     mover_query: Query<(Entity, &SpringPhysicsMover, &GlobalDirectionRay)>,
     transform_query: Query<&Transform>,
     velocity_query: Query<&Velocity>,
 ) {
     for (mover_entity, mover, down_ray) in mover_query.iter() {
-        let mut mover_force = force_query.get_mut(mover_entity).unwrap();
-        let mover_velocity = velocity_query.get(mover_entity).unwrap().linvel;
-
+        let Ok(mut mover_force) = force_query.get_mut(mover_entity) else { continue };
+        let Ok(mut mover_state) = mover_state_query.get_mut(mover_entity) else { continue };
+        let Ok(mover_velocity) = velocity_query.get(mover_entity) else { continue };
+        
         if let Some((other_entity, hit)) = down_ray.hit {
-            let other_velocity = if let Ok(velocity) = velocity_query.get(other_entity) { velocity.linvel } else { Vec3::ZERO };
+            mover_state.set_grounded(hit.toi <= mover.ride_height);
+            if !mover_state.is_grounded() { mover_force.force = Vec3::ZERO; continue; }
 
-            let ray_direction_velocity = Vec3::dot(Vec3::NEG_Y, mover_velocity);
-            let other_direction_velocity = Vec3::dot(Vec3::NEG_Y, other_velocity);
+            let other_linvel = if let Ok(velocity) = velocity_query.get(other_entity) { velocity.linvel } else { Vec3::ZERO };
+            let ray_direction_velocity = Vec3::dot(Vec3::NEG_Y, mover_velocity.linvel);
+            let other_direction_velocity = Vec3::dot(Vec3::NEG_Y, other_linvel);
             let relative_velocity = ray_direction_velocity - other_direction_velocity;
 
             let x = hit.toi - mover.ride_height;
             let spring_force = (x * mover.ride_spring_strength) - (relative_velocity * mover.ride_spring_damper);
 
             mover_force.force = Vec3::NEG_Y * spring_force;
+
             if let Ok(mut other_force) = force_query.get_mut(other_entity) {
                 let other_center = transform_query.get(other_entity).unwrap().translation;
                 let contact_force = ExternalForce::at_point(Vec3::NEG_Y * - spring_force, hit.point, other_center);
@@ -125,6 +147,7 @@ fn sys_update_ride_force(
                 other_force.torque += contact_force.torque;
             }
         } else {
+            mover_state.set_grounded_off();
             mover_force.force = Vec3::ZERO;
         }
     }
@@ -145,28 +168,23 @@ fn sys_update_upright_force(mut mover_query: Query<(&mut ExternalForce, &Transfo
 fn sys_update_upright_rotation(
     mut mover_query: Query<(&mut SpringPhysicsMover, &Transform, &MoveInput3d)>,
 ) {
-    for (mut mover, transform, target) in mover_query.iter_mut() {
+    for (mut mover, transform, input) in mover_query.iter_mut() {
         let mut look_transform = Transform::from_translation(Vec3::ZERO);
 
-        if target.0 == Vec3::ZERO {
+        if input.0 == Vec3::ZERO {
             let mut forward = transform.forward();
             forward.y = 0.0;
             forward = forward.normalize();
 
             look_transform.look_at(forward, Vec3::Y);
-        } else if target.0.x == 0.0 && target.0.z == 0.0 {
-            let mut forward = transform.forward();
-            forward.y = 0.0;
-            forward = forward.normalize();
-
-            if target.0.y > 0.0 {
-                look_transform.look_at(Vec3::Y * 0.2 + forward, (Vec3::Y - forward).normalize());
-            } else {
-                look_transform.look_at(Vec3::NEG_Y * 0.2 + forward, (Vec3::Y - forward).normalize());
-            }
+        } else if input.0.x == 0.0 && input.0.z == 0.0 {
+            continue;
         } else {
-            let target_normalized = target.0.normalize();
-            let look_at = Vec3::new(target_normalized.x, target_normalized.y - 0.1 * target.0.length(), target_normalized.z);
+            let mut input_normalized = input.0;
+            input_normalized.y = 0.0;
+            input_normalized = input_normalized.normalize();
+            
+            let look_at = Vec3::new(input_normalized.x, -0.1 * input_normalized.length(), input_normalized.z);
             look_transform.look_at(look_at, Vec3::Y);
         }
 
