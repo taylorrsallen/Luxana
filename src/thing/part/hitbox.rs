@@ -55,16 +55,19 @@ impl PartHitbox {
 pub struct PartHitboxBundle {
     pub transform: Transform,
     pub global_transform: GlobalTransform,
-    pub rigid_body: RigidBody,
+    pub collision_groups: CollisionGroups,
     pub collider: Collider,
     pub sensor: Sensor,
 }
 
 impl PartHitboxBundle {
     pub fn new(hitbox: &PartHitbox) -> Self {
+        let mut filter_group = Group::all();
+        filter_group.remove(COLLISION_GROUP_PART);
+        
         Self {
             transform: hitbox.transform,
-            rigid_body: RigidBody::KinematicPositionBased,
+            collision_groups: CollisionGroups::new(COLLISION_GROUP_PART, filter_group),
             collider: hitbox.collider(),
             ..default()
         }

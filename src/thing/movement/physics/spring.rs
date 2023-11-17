@@ -153,7 +153,9 @@ fn sys_update_ride_force(
     }
 }
 
-fn sys_update_upright_force(mut mover_query: Query<(&mut ExternalForce, &Transform, &Velocity, &SpringPhysicsMover)>) {
+fn sys_update_upright_force(
+    mut mover_query: Query<(&mut ExternalForce, &Transform, &Velocity, &SpringPhysicsMover)>,
+) {
     for (mut force, transform, velocity, mover) in mover_query.iter_mut() {
         let current_rotation = transform.rotation;
         let to_goal: Quat = Math::shortest_rotation(mover.upright_rotation, current_rotation);

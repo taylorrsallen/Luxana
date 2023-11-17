@@ -51,6 +51,14 @@ pub const ASSET_DATA_DIR: &'static str = "assets/data";
 pub const SAVE_DATA_DIR: &'static str = "data/save";
 pub const APP_DATA_DIR: &'static str = "data/app";
 
+/// Actors, Items, Vehicles, Vegetation, Debris
+pub const COLLISION_GROUP_THING: Group = Group::GROUP_2;
+/// Sensor colliders representing Parts of Things
+pub const COLLISION_GROUP_PART: Group = Group::GROUP_3;
+/// Invisible raycasts
+pub const COLLISION_GROUP_RAY: Group = Group::GROUP_4;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 #[derive(Default)]
 pub struct TankPlugin {
     pub game_name: String,
