@@ -54,7 +54,8 @@ impl Id {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#[derive(Reflect)]
+#[derive(Debug, Reflect)]
+#[reflect(Default)]
 pub enum TransformTargetRef {
     Position(Vec3),
     Entity(Entity),

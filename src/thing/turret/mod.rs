@@ -109,7 +109,7 @@ fn sys_update_turret_movement(
 
         let turret_transform = if let Ok(transform) = global_transform_query.get(turret_entity) { transform } else { continue };
         gizmos.line(turret_transform.translation(), target_transform.translation(), Color::RED);
-        gizmos.sphere(target_transform.translation(), Quat::IDENTITY, 0.5, Color::RED);
+        gizmos.cuboid(Transform::from_translation(target_transform.translation()).with_scale(Vec3::splat(0.25)), Color::RED);
 
         if let Some(yaw_entity) = turret.yaw_pivot {
             if let Ok(yaw_pivot) = yaw_query.get(yaw_entity) {

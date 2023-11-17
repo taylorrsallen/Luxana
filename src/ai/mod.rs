@@ -117,8 +117,12 @@ fn sys_update_basic_ai_actions(
             }
             AIAction::MoveTo(transform_target_ref) => {
                 let target_pos = if let Some(pos) = transform_target_ref.try_get_pos(&transform_query) { pos } else { continue };
-                let move_direction = (target_pos - ai_transform.translation()).normalize_or_zero();
-                move_input.0 = Vec3::new(move_direction.x, 0.0, move_direction.z);
+                let mut move_direction = (target_pos - ai_transform.translation());
+                let y_value = if move_direction.y >= 1.0 { 1.0 } else { 0.0 };
+                move_direction.y = 0.0;
+                move_direction = move_direction.normalize();
+
+                move_input.0 = Vec3::new(move_direction.x, y_value, move_direction.z);
             }
         }
         

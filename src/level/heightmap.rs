@@ -210,7 +210,7 @@ fn sys_update_heightmap_meshes(
             if let Some(old_mesh_entity) = root_mesher.meshes.get(&key) { commands.entity(*old_mesh_entity).despawn_recursive(); }
             let new_mesh_entity = commands.spawn(PbrBundle {
                     mesh: meshes.add(new_mesh.clone()),
-                    material: materials.add(StandardMaterial { base_color: Color::rgb(0.3, 0.9, 0.6), ..default() }),
+                    material: materials.add(StandardMaterial { base_color: Color::rgb(0.3, 0.9, 0.6), perceptual_roughness: 0.9, ..default() }),
                     transform: Transform::from_translation(Vec3::new(key.x as f32, 0.0, key.y as f32)),
                     ..default()
                 })

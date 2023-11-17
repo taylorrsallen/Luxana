@@ -169,7 +169,7 @@ fn sys_update_upright_rotation(
     mut mover_query: Query<(&mut SpringPhysicsMover, &Transform, &MoveInput3d)>,
 ) {
     for (mut mover, transform, input) in mover_query.iter_mut() {
-        let mut look_transform = Transform::from_translation(Vec3::ZERO);
+        let mut look_transform = Transform::IDENTITY;
 
         if input.0 == Vec3::ZERO {
             let mut forward = transform.forward();
