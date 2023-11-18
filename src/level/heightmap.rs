@@ -146,6 +146,8 @@ impl HeightmapRootChanges {
 /// Put this on a [HeightmapRoot] along with [HeightmapRootChanges], and the heightmap will be meshed.
 /// 
 /// You must mark any changes made using [HeightmapRootChanges], or the mesh will not update.
+/// 
+/// If a [Handle<StandardMaterial>] is on the entity, it will be used as the material for the mesh.
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
 pub struct HeightmapRootMesher {
@@ -155,59 +157,17 @@ pub struct HeightmapRootMesher {
 fn sys_update_heightmap_meshes(
     mut commands: Commands,
     mut heightmap_query: Query<(Entity, &HeightmapRoot, &mut HeightmapRootMesher, &mut HeightmapRootChanges), Changed<HeightmapRootChanges>>,
+    material_query: Query<&Handle<StandardMaterial>, With<HeightmapRootMesher>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     for (root_entity, root, mut root_mesher, mut root_changes) in heightmap_query.iter_mut() {
         let mut new_mesh_entities = vec![];
         for key in root_changes.iter() {
-            let chunk = if let Some(chunk) = root.chunk_from_coord(key) { chunk.read().unwrap() } else { continue };
-
-            // I hate this
-            let new_mesh;
-            if let Some(chunk_r) = root.chunk_from_coord(IVec2::new(key.x + CHUNK_2D_DIM as i32, key.y)) {
-                if let Some(chunk_f) = root.chunk_from_coord(IVec2::new(key.x, key.y + CHUNK_2D_DIM as i32)) {
-                    if let Some(chunk_rf) = root.chunk_from_coord(IVec2::new(key.x + CHUNK_2D_DIM as i32, key.y + CHUNK_2D_DIM as i32)) {
-                        new_mesh = MeshGen::from_square_heightmap_with_r_f_rf_neighbors(
-                            chunk.data(),
-                            chunk_r.read().unwrap().data(),
-                            chunk_f.read().unwrap().data(),
-                            chunk_rf.read().unwrap().data(),
-                            CHUNK_2D_DIM);
-                    } else {
-                        new_mesh = MeshGen::from_square_heightmap_with_r_f_neighbors(
-                            chunk.data(),
-                            chunk_r.read().unwrap().data(),
-                            chunk_f.read().unwrap().data(),
-                            CHUNK_2D_DIM);
-                    }
-                } else {
-                    if let Some(chunk_rf) = root.chunk_from_coord(IVec2::new(key.x + CHUNK_2D_DIM as i32, key.y + CHUNK_2D_DIM as i32)) {
-                        // TODO: Right, Right & Front neighbors
-                        new_mesh = MeshGen::from_square_heightmap(chunk.data(), CHUNK_2D_DIM);
-                    } else {
-                        new_mesh = MeshGen::from_square_heightmap_with_r_neighbor(
-                            chunk.data(),
-                            chunk_r.read().unwrap().data(),
-                            CHUNK_2D_DIM);
-                    }
-                }
-            } else if let Some(chunk_f) = root.chunk_from_coord(IVec2::new(key.x, key.y + CHUNK_2D_DIM as i32)) {
-                if let Some(chunk_rf) = root.chunk_from_coord(IVec2::new(key.x + CHUNK_2D_DIM as i32, key.y + CHUNK_2D_DIM as i32)) {
-                    // TODO: Front, Right & Front neighbors
-                    new_mesh = MeshGen::from_square_heightmap(chunk.data(), CHUNK_2D_DIM);
-                } else {
-                    new_mesh = MeshGen::from_square_heightmap_with_f_neighbor(
-                        chunk.data(),
-                        chunk_f.read().unwrap().data(),
-                        CHUNK_2D_DIM);
-                }
-            } else {
-                // Alone in the world. Only having a Right & Front neighbor is an ILLEGAL state which we ignore.
-                new_mesh = MeshGen::from_square_heightmap(chunk.data(), CHUNK_2D_DIM);
-            }
-
+            let Some(new_mesh) = try_get_heightmap_mesh(key, root) else { continue };
+            
             if let Some(old_mesh_entity) = root_mesher.meshes.get(&key) { commands.entity(*old_mesh_entity).despawn_recursive(); }
+
             let new_mesh_entity = commands.spawn(PbrBundle {
                     mesh: meshes.add(new_mesh.clone()),
                     material: materials.add(StandardMaterial { base_color: Color::rgb(0.3, 0.9, 0.6), perceptual_roughness: 0.9, ..default() }),
@@ -224,4 +184,35 @@ fn sys_update_heightmap_meshes(
         commands.entity(root_entity).push_children(&new_mesh_entities);
         root_changes.clear();
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+fn try_get_heightmap_mesh(
+    key: IVec2,
+    root: &HeightmapRoot,
+) -> Option<Mesh> {
+    let chunk = if let Some(chunk) = root.chunk_from_coord(key) { chunk.read().unwrap() } else { return None };
+    let mut neighbor_flags: u32 = 0;
+    let chunk_r = if let Some(chunk_r) = root.chunk_from_coord(IVec2::new(key.x + CHUNK_2D_DIM as i32, key.y)) { neighbor_flags |= 1; Some(chunk_r.read().unwrap()) } else { None };
+    let chunk_f = if let Some(chunk_f) = root.chunk_from_coord(IVec2::new(key.x, key.y + CHUNK_2D_DIM as i32)) { neighbor_flags |= 2; Some(chunk_f.read().unwrap()) } else { None };
+    let chunk_rf = if let Some(chunk_rf) = root.chunk_from_coord(IVec2::new(key.x + CHUNK_2D_DIM as i32, key.y + CHUNK_2D_DIM as i32)) { neighbor_flags |= 4; Some(chunk_rf.read().unwrap()) } else { None };
+
+    Some(match neighbor_flags {
+        // R neighbor
+        1 => { MeshGen::from_square_heightmap_with_r_neighbor(chunk.data(), chunk_r.unwrap().data(), CHUNK_2D_DIM) },
+        // F neighbor
+        2 => { MeshGen::from_square_heightmap_with_f_neighbor(chunk.data(), chunk_f.unwrap().data(), CHUNK_2D_DIM) },
+        // R & F neighbors
+        3 => { MeshGen::from_square_heightmap_with_r_f_neighbors(chunk.data(), chunk_r.unwrap().data(), chunk_f.unwrap().data(), CHUNK_2D_DIM) }
+        // Only RF neighbor: impossible case which is ignored
+        4 => { MeshGen::from_square_heightmap(chunk.data(), CHUNK_2D_DIM) }
+        // TODO: R & RF neighbors
+        5 => { MeshGen::from_square_heightmap(chunk.data(), CHUNK_2D_DIM) }
+        // TODO: F & RF neighbors
+        6 => { MeshGen::from_square_heightmap(chunk.data(), CHUNK_2D_DIM) }
+        // R & F & RF neighbors
+        7 => { MeshGen::from_square_heightmap_with_r_f_rf_neighbors(chunk.data(), chunk_r.unwrap().data(), chunk_f.unwrap().data(), chunk_rf.unwrap().data(), CHUNK_2D_DIM) }
+        // No neighbors
+        _ => { MeshGen::from_square_heightmap(chunk.data(), CHUNK_2D_DIM) }
+    })
 }

@@ -117,7 +117,7 @@ impl MeshData {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 pub struct MeshGen;
 impl MeshGen {
-    /// - data: The heightmap being meshed
+    /// - data: The chunk being meshed
     /// - data_r: Right neighbor
     /// - data_f: Front neighbor
     /// - data_rf: Right & Front neighbor
@@ -164,7 +164,7 @@ impl MeshGen {
         mesh_data.mesh()
     }
 
-    /// - data: The heightmap being meshed
+    /// - data: The chunk being meshed
     /// - data_r: Right neighbor
     /// - data_f: Front neighbor
     pub fn from_square_heightmap_with_r_f_neighbors(
@@ -221,7 +221,7 @@ impl MeshGen {
         mesh_data.mesh()
     }
 
-    /// - data: The heightmap being meshed
+    /// - data: The chunk being meshed
     /// - data_r: Right neighbor
     pub fn from_square_heightmap_with_r_neighbor(
         data: &[f32],
@@ -259,7 +259,7 @@ impl MeshGen {
         mesh_data.mesh()
     }
 
-    /// - data: The heightmap being meshed
+    /// - data: The chunk being meshed
     /// - data_f: Front neighbor
     pub fn from_square_heightmap_with_f_neighbor(
         data: &[f32],
