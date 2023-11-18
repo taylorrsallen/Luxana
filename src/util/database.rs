@@ -27,12 +27,12 @@ impl<DataType: Default + Serialize + for<'a> Deserialize<'a> + Sync + Send + 'st
     fn new(name: &'static str) -> Self { Self { name, data: vec![] } }
 
     pub fn load(mut self) -> Self {
-        self.data = if let Some(data) = Serial::load_ron_file_from_path(ASSET_DATA_DIR, self.name.to_owned()) { data } else { vec![DataType::default()] };
+        self.data = if let Some(data) = Serial::load_type_from_ron(DATA_ASSET_DIR, self.name.to_owned()) { data } else { vec![DataType::default()] };
         self.save();
         self
     }
 
-    pub fn save(&self) { Serial::save_ron_file_to_path(&self.data, ASSET_DATA_DIR, self.name, 2); }
+    pub fn save(&self) { Serial::save_type_to_ron(&self.data, DATA_ASSET_DIR, self.name, 2); }
     pub fn get(&self, index: usize) -> Option<&DataType> { self.data.get(index) }
 }
 

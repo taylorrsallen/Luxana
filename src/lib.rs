@@ -25,6 +25,8 @@ mod audio;
 pub use audio::*;
 mod camera;
 pub use camera::*;
+mod data;
+pub use data::*;
 mod input;
 pub use input::*;
 mod level;
@@ -47,7 +49,7 @@ mod voxel;
 pub use voxel::*;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-pub const ASSET_DATA_DIR: &'static str = "assets/data";
+pub const DATA_ASSET_DIR: &'static str = "assets/data";
 pub const SAVE_DATA_DIR: &'static str = "data/save";
 pub const APP_DATA_DIR: &'static str = "data/app";
 
