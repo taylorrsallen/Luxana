@@ -28,29 +28,11 @@ impl<T: Asset> PackageType<T> {
     }
 
     pub fn load(&mut self, asset_server: &Res<AssetServer>) {
-        let mut dirs: Vec<String> = vec![];
-        let mut assets: Vec<String> = vec![];
+        let files = Serial::file_paths_from_directory_recursive("assets", self.name);
 
-        dirs.push(self.name.to_owned());
-
-        loop {
-            let dir = if let Some(dir) = dirs.pop() { dir } else { break };
-            let entries = if let Ok(entries) = read_dir(&("assets/".to_string() + &dir)) { entries } else { continue; };
-            for entry in entries {
-                let entry = if let Ok(entry) = entry { entry } else { continue };
-                let entry_name = entry.path().file_stem().unwrap().to_str().unwrap().to_string();
-                if entry.path().is_dir() {
-                    dirs.push(dir.clone() + "/" + &entry_name);
-                } else {
-                    assets.push(dir.clone() + "/" + &entry_name);
-                }
-            }
-        }
-
-        for asset in assets.iter() {
-            self.ids.insert(asset.clone(), self.assets.len() as u32);
-            self.assets.push(asset_server.load(asset.clone() + "." + &self.extension));
-            // println!("Loaded {}", asset.clone() + "." + &self.extension);
+        for asset_file in files.iter() {
+            self.ids.insert(asset_file.clone(), self.assets.len() as u32);
+            self.assets.push(asset_server.load(asset_file.clone() + "." + &self.extension));
         }
     }
 
