@@ -18,12 +18,8 @@ impl<T: Default + Clone + Serialize + for<'a> Deserialize<'a> + std::fmt::Debug 
 
 impl<T: Default + Clone + Serialize + for<'a> Deserialize<'a> + std::fmt::Debug + TypePath + FromReflect + Sync + Send + 'static> Plugin for DataAssetPlugin<T> {
     fn build(&self, app: &mut App) {
-        let mut data_assets = DataAssets::<T>::new(&self.type_name);
-        data_assets.init_directory();
-        data_assets.load_all();
-        
         app.register_type::<DataAssets<T>>()
-            .insert_resource(data_assets);
+            .insert_resource(DataAssets::<T>::new(&self.type_name));
     }
 }
 
@@ -31,23 +27,39 @@ impl<T: Default + Clone + Serialize + for<'a> Deserialize<'a> + std::fmt::Debug 
 #[derive(Resource, Default, Debug, Reflect)]
 #[reflect(Resource, Default)]
 pub struct DataAssets<T: Default + Clone + Serialize + for<'a> Deserialize<'a> + std::fmt::Debug + TypePath + FromReflect + Sync + Send + 'static> {
-    pub type_name: String,
+    type_name: String,
     data: Vec<T>,
     asset_id_map: HashMap::<String, u16>,
 }
 
 impl<T: Default + Clone + Serialize + for<'a> Deserialize<'a> + std::fmt::Debug + TypePath + FromReflect + Sync + Send + 'static> DataAssets<T> {
     pub fn new<S: AsRef<str>>(type_name: S) -> Self {
-        Self { type_name: type_name.as_ref().to_owned(), ..default() }
+        let mut data_assets = Self { type_name: type_name.as_ref().to_owned(), ..default() };
+        data_assets.init();
+        data_assets
     }
 
+    pub fn type_name(&self) -> &String { &self.type_name }
     pub fn full_path(&self) -> String { DATA_ASSET_DIR.to_string() + "/" + &self.type_name }
     pub fn asset_path(&self) -> String { "data/".to_string() + &self.type_name }
     pub fn data(&self) -> &[T] { &self.data }
 
-    pub fn init_directory(&self) {
+    /// It is intended that you use this to cache the ID of the desired asset, and then get the asset when needed using `asset_from_id`.
+    pub fn id_from_name<S: AsRef<str>>(&self, asset: S) -> u16 {
+        if let Some(id) = self.asset_id_map.get(asset.as_ref()) { *id } else { 0 }
+    }
+
+    pub fn asset_from_id(&self, id: usize) -> &T { &self.data[id] }
+
+    /// Don't use this in performance critical areas
+    pub fn asset_from_name<S: AsRef<str>>(&self, asset: S) -> &T {
+        self.asset_from_id(self.id_from_name(asset) as usize)
+    }
+
+    pub fn init(&mut self) {
         Serial::create_directory_path(self.full_path());
         self.create_example_assets();
+        self.load_all();
     }
 
     fn create_example_assets(&self) {
