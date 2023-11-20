@@ -133,7 +133,6 @@ Currently not very user friendly, and the majority of implementations are naive,
 - Bitflag: Old, to be removed or refactored.
 - Bitmask: Gods gift to programmers, implementation adapted from OpenVDB.
 - Bundle: A single convenience bundle for adding Visibility and Transform to empties.
-- Database: Old, to be removed or refactored.
 - Image: Meant to be for image generation. Currently just generates a texture for a heightmap.
 - Math: Whatever Bevy or Rust lacks (or I couldn't find).
 - Noise: Currently just generates perlin 2d heightmaps.
@@ -141,7 +140,7 @@ Currently not very user friendly, and the majority of implementations are naive,
 - Thread: Meant to make multithreaded operations effortless. Not used anywhere anymore. Probably needs a refactor.
 
 ### 13. Voxel
-- The oldest part of the library, and a mess. Half of the code in here doesn't work anymore. Don't use this; probably don't even look at this.
+- Half of the code in here doesn't work anymore. Probably don't use this.
 - TODO:
     - [ ] Rename to "DataStructures" or something similar
         - > Data refers to save data in Tank. Too vague to just call these Structures? They *are* data though. I mean techhnically it's *all* data.
@@ -172,6 +171,3 @@ Currently not very user friendly, and the majority of implementations are naive,
     - > An entity with a data structure that can be used to create a mesh + collider, with a fixed rigidbody.
 - Why the distinction?
     - All of these classifications of game objects are just architectural concepts for component & code organization in ECS. `Thing`s, `Building`s, `Terrain`; none of these actually technically exist and one Entity could be any combination of multiple. For instance, `Vehicle`s will probably be `Thing`s that use `Terrain`-like data structures for their meshes & colliders.
-
-- Shaders
-    - Require a custom material with a hardcoded function to return the file location of the shader, in the assets folder of the project using the library. I was hoping to have built in shaders like clouds & water & fog volumes, but I think I may have to wait until Bevy updates how they handle shaders. I *could* make a plugin that adds a shader material and creates the shader file in the 'shaders' directory within 'assets', but that feels intrusive.

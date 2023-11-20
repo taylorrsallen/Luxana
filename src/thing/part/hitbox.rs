@@ -61,15 +61,15 @@ pub struct PartHitboxBundle {
 }
 
 impl PartHitboxBundle {
-    pub fn new(hitbox: &PartHitbox) -> Self {
-        let mut filter_group = Group::all();
-        filter_group.remove(COLLISION_GROUP_PART);
+    pub fn new(hitbox: &PartHitbox, part_rotation: &Quat) -> Self {
+        let mut transform = hitbox.transform;
+        let rotated_translation = part_rotation.mul_vec3(transform.translation);
+        transform.translation = rotated_translation;
+        transform.rotate(*part_rotation);
+
+        let mut collision_groups = CollisionGroups::new(COLLISION_GROUP_PART, Group::all());
+        collision_groups.filters.remove(COLLISION_GROUP_PART);
         
-        Self {
-            transform: hitbox.transform,
-            collision_groups: CollisionGroups::new(COLLISION_GROUP_PART, filter_group),
-            collider: hitbox.collider(),
-            ..default()
-        }
+        Self { transform, collision_groups, collider: hitbox.collider(), ..default() }
     }
 }

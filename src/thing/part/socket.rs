@@ -51,7 +51,7 @@ impl PartSocket {
     pub fn from_secondary_socket_node(transform: Transform, part_offset: Vec3) -> Self {
         Self {
             offset: transform.translation - part_offset,
-            rotation: transform.rotation,
+            rotation: transform.rotation.inverse(),
             connector: SocketConnector::Female,
         }
     }
@@ -81,6 +81,7 @@ pub fn sys_update_socket_connections(
 
     changed_socket_query.for_each(|base_entity| {
         let Ok((base_connection, base_parent)) = socket_query.get(base_entity) else { return };
+        // let (base_forward, base_up) = if let Ok(transform) = transform_query.get(base_entity) { (transform.forward(), transform.up()) } else { return };
         let Some(connected_entity) = base_connection.0.clone() else { return };
         let Ok((_, connected_parent)) = socket_query.get(connected_entity) else { return };
 
@@ -89,6 +90,7 @@ pub fn sys_update_socket_connections(
 
         let Ok(mut connected_parent_transform) = transform_query.get_mut(connected_parent.get()) else { return };
         connected_parent_transform.translation = Vec3::ZERO;
+        // connected_parent_transform.look_to(base_forward, base_up);
         commands.entity(connected_parent.get()).set_parent(base_entity);
     });
 }
@@ -103,11 +105,12 @@ pub struct SocketBundle {
 }
 
 impl SocketBundle {
-    pub fn new(socket: &PartSocket) -> Self {
-        Self {
-            transform: socket.transform(),
-            connector: socket.connector,
-            ..default()
-        }
+    pub fn new(socket: &PartSocket, part_rotation: &Quat) -> Self {
+        let mut transform = socket.transform();
+        let rotated_translation = part_rotation.mul_vec3(transform.translation);
+        transform.translation = rotated_translation;
+        transform.rotate(*part_rotation);
+
+        Self { transform, connector: socket.connector, ..default() }
     }
 }

@@ -184,32 +184,34 @@ impl<T: Default + Clone + Serialize + for<'a> Deserialize<'a> + std::fmt::Debug 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// DataAssets that will never be saved or loaded.
-pub struct RuntimeDataAssetPlugin<T: Clone + Sync + Send + 'static> {
+pub struct RuntimeDataAssetPlugin<T: Default + Clone + TypePath + FromReflect + Sync + Send + 'static> {
     type_name: String,
     phantom_data: PhantomData<T>,
 }
 
-impl<T: Clone + Sync + Send + 'static> RuntimeDataAssetPlugin<T> {
+impl<T: Default + Clone + TypePath + FromReflect + Sync + Send + 'static> RuntimeDataAssetPlugin<T> {
     pub fn new<S: AsRef<str>>(type_name: S) -> Self {
         Self { type_name: type_name.as_ref().to_owned(), phantom_data: PhantomData }
     }
 }
 
-impl<T: Clone + Sync + Send + 'static> Plugin for RuntimeDataAssetPlugin<T> {
+impl<T: Default + Clone + TypePath + FromReflect + Sync + Send + 'static> Plugin for RuntimeDataAssetPlugin<T> {
     fn build(&self, app: &mut App) {
-        app.insert_resource(RuntimeDataAssets::<T>::new(&self.type_name));
+        app.register_type::<RuntimeDataAssets<T>>()
+            .insert_resource(RuntimeDataAssets::<T>::new(&self.type_name));
     }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-#[derive(Resource, Default, Debug)]
-pub struct RuntimeDataAssets<T: Clone + Sync + Send + 'static> {
+#[derive(Resource, Default, Debug, Reflect)]
+#[reflect(Resource, Default)]
+pub struct RuntimeDataAssets<T: Default + Clone + TypePath + FromReflect + Sync + Send + 'static> {
     type_name: String,
     data: Vec<T>,
     asset_id_map: HashMap::<String, u16>,
 }
 
-impl<T: Clone + Sync + Send + 'static> RuntimeDataAssets<T> {
+impl<T: Default + Clone + TypePath + FromReflect + Sync + Send + 'static> RuntimeDataAssets<T> {
     pub fn new<S: AsRef<str>>(type_name: S) -> Self {
         Self { type_name: type_name.as_ref().to_owned(), data: vec![], asset_id_map: HashMap::default() }
     }
