@@ -197,7 +197,7 @@ fn onsys_init_egui_fonts(mut ctx_query: Query<&mut EguiContext>, fonts: Res<Asse
 
     font_definitions.font_data.insert(
             "hack_regular".to_owned(),
-            FontData::from_owned(Serial::file_to_bytes("assets/fonts/hack/regular.ttf").unwrap()),
+            FontData::from_owned(Serial::try_get_bytes_from_path("assets/fonts/hack/regular.ttf").unwrap()),
         );
 
     font_definitions.families.insert(

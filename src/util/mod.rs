@@ -5,8 +5,6 @@ pub use generics::*;
 
 mod bitmask;
 pub use bitmask::*;
-mod database;
-pub use database::*;
 mod image;
 pub use self::image::*;
 mod math;

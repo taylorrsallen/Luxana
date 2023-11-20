@@ -23,7 +23,6 @@ pub struct Emitter {
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
 pub struct EmitterSound {
-    /// From local rotation
     sound_id: u32,
     volume: f32,
 }
