@@ -26,41 +26,40 @@ impl BodyData {
     //     commands: &mut Commands,
     //     parts_data: &RuntimeDataAssets<PartData>,
     // ) -> Entity {
-    //     let root_part = &self.parts[0];
-        
-    //     let mut children = vec![];
-    //     for connection in root_part.connections.iter().copied() {
-    //         children.push(self.spawn_body_part_recursive(0, connection, commands, parts_data));
-    //     }
-        
-    //     let entity = parts_data.asset_from_id(root_part.part_id as usize).spawn_with_connections(
-    //             transform,
-    //             root_part.connections.iter().map(|connection|),
-    //             commands,
-    //         );
-
-    //     commands.entity(entity).push_children(&children);
-    //     entity
-    // }
-
-    // pub fn spawn_body_part_recursive(
-    //     &self,
-    //     parent_body_part_id: u8,
-    //     connection: BodyConnectionData,
-    //     commands: &mut Commands,
-    //     parts_data: &RuntimeDataAssets<PartData>,
-    // ) -> Entity {
-    //     let body_part = &self.parts[connection.to_body_part as usize];
+    //     let body_part = &self.parts[0];
         
     //     let mut children = vec![];
     //     for connection in body_part.connections.iter() {
-            
+    //         let male_socket_index = connection.from_male_socket;
+    //         let Some(female_socket_entity) = self.spawn_body_part_recursive(*connection, commands, parts_data).1 else { continue };
+    //         children.push((male_socket_index, female_socket_entity));
+    //     }
+        
+    //     parts_data.asset_from_id(body_part.part_id as usize).spawn_with_connections(transform, &children, commands).0
+    // }
+
+    // fn spawn_body_part_recursive(
+    //     &self,
+    //     parent_connection: BodyConnectionData,
+    //     commands: &mut Commands,
+    //     parts_data: &RuntimeDataAssets<PartData>,
+    // ) -> (Entity, Option<Entity>) {
+    //     let body_part_id = parent_connection.to_body_part;
+    //     let body_part = &self.parts[body_part_id as usize];
+        
+    //     let mut children = vec![];
+    //     for connection in body_part.connections.iter() {
+    //         let male_socket_index = connection.from_male_socket;
+    //         let Some(female_socket_entity) = self.spawn_body_part_recursive(*connection, commands, parts_data).1 else { continue };
+    //         children.push((male_socket_index, female_socket_entity));
     //     }
 
-    //     let body_part_entity = parts_data.asset_from_id(body_part.part_id as usize)
-    //         .spawn_with_connections(Transform::IDENTITY, commands);
-
-    //     body_part_entity
+    //     let part_data = parts_data.asset_from_id(body_part.part_id as usize);
+    //     if !children.is_empty() {
+    //         part_data.spawn_with_connections(Transform::IDENTITY, &children, commands)
+    //     } else {
+    //         (part_data.spawn(Transform::IDENTITY, commands), None)
+    //     }
     // }
 
     pub fn from_humanoid<S: AsRef<str>>(
