@@ -61,17 +61,17 @@ impl HeightmapRoot {
         }
     }
 
-    pub fn modify_values_at_pos(&mut self, modifier: f32, pos: Vec2) {
+    // pub fn modify_values_at_pos(&mut self, modifier: f32, pos: Vec2) {
 
-    }
+    // }
 
-    pub fn modify_values_in_radius(&mut self, modifier: f32, origin: Vec2, radius: f32) {
+    // pub fn modify_values_in_radius(&mut self, modifier: f32, origin: Vec2, radius: f32) {
 
-    }
+    // }
 
-    pub fn modify_values_with_radial_falloff(&mut self, modifier: f32, origin: Vec2, radius: f32) {
+    // pub fn modify_values_with_radial_falloff(&mut self, modifier: f32, origin: Vec2, radius: f32) {
 
-    }
+    // }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

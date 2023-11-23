@@ -1,0 +1,10 @@
+use crate::*;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+pub struct TankParticlesPlugin;
+impl Plugin for TankParticlesPlugin {
+    fn build(&self, app: &mut App) {
+        
+    }
+}
+

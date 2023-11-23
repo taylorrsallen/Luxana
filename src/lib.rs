@@ -35,6 +35,8 @@ mod gui;
 pub use gui::*;
 mod packages;
 pub use packages::*;
+mod particles;
+pub use particles::*;
 mod player;
 pub use player::*;
 mod render;
@@ -88,7 +90,7 @@ impl Plugin for TankPlugin {
                 })
                 .set(ImagePlugin::default_nearest())
             )
-            .add_systems(Startup, sys_init_window_icon)
+            .add_systems(Startup, stsys_init_window_icon)
             .insert_resource(self.msaa)
             
             // Dev + Debug
@@ -122,7 +124,7 @@ impl Plugin for TankPlugin {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Winit must be added separately in Cargo.toml AND be the same version as is used by Bevy for this to work.
-fn sys_init_window_icon(
+fn stsys_init_window_icon(
     primary_window_query: Query<Entity, With<PrimaryWindow>>,
     windows: NonSend<WinitWindows>,
 ) {

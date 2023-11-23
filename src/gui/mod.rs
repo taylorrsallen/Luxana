@@ -193,19 +193,19 @@ fn sys_update_gui(
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 fn onsys_init_egui_fonts(mut ctx_query: Query<&mut EguiContext>, fonts: Res<Assets<Font>>, packages: Res<Packages>) {
-    let mut font_definitions = FontDefinitions::default();
+    // let mut font_definitions = FontDefinitions::default();
 
-    font_definitions.font_data.insert(
-            "hack_regular".to_owned(),
-            FontData::from_owned(Serial::try_get_bytes_from_path("assets/fonts/hack/regular.ttf").unwrap()),
-        );
+    // font_definitions.font_data.insert(
+    //         "hack_regular".to_owned(),
+    //         FontData::from_owned(Serial::try_get_bytes_from_path("assets/fonts/hack/regular.ttf").unwrap()),
+    //     );
 
-    font_definitions.families.insert(
-            FontFamily::Name("hack_regular".into()),
-            vec![
-                "hack_regular".to_owned(),
-            ],
-        );
+    // font_definitions.families.insert(
+    //         FontFamily::Name("hack_regular".into()),
+    //         vec![
+    //             "hack_regular".to_owned(),
+    //         ],
+    //     );
 
-    for mut ctx in ctx_query.iter_mut() { ctx.get_mut().set_fonts(font_definitions.clone()); }
+    // for mut ctx in ctx_query.iter_mut() { ctx.get_mut().set_fonts(font_definitions.clone()); }
 }
