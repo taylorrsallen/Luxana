@@ -127,7 +127,7 @@ fn sys_update_ride_force(
         let Ok(mover_velocity) = velocity_query.get(mover_entity) else { continue };
         
         if let Some((other_entity, hit)) = down_ray.hit {
-            mover_state.set_grounded(hit.toi <= mover.ride_height);
+            mover_state.set_grounded(hit.toi <= mover.ride_height + mover.ride_height * 0.1);
             if !mover_state.is_grounded() { mover_force.force = Vec3::ZERO; continue; }
 
             let other_linvel = if let Ok(velocity) = velocity_query.get(other_entity) { velocity.linvel } else { Vec3::ZERO };
