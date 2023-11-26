@@ -220,23 +220,6 @@ impl Cameras {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #[derive(Bundle)]
-pub struct GuiCameraBundle {
-    pub camera_2d: Camera2dBundle,
-}
-
-impl Default for GuiCameraBundle {
-    fn default() -> Self {
-        Self {
-            camera_2d: Camera2dBundle {
-                camera_2d: Camera2d { clear_color: ClearColorConfig::None },
-                tonemapping: Tonemapping::AcesFitted,
-                ..default()
-            },
-        }
-    }
-}
-
-#[derive(Bundle)]
 pub struct MainCameraBundle {
     pub camera_3d: Camera3dBundle,
     pub audio_receiver: AudioReceiver,

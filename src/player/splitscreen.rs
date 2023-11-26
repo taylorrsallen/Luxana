@@ -40,7 +40,7 @@ pub fn sys_mark_splitscreen_changes(
 
 pub fn sys_update_resized_camera_viewports(
     mut camera_query: Query<&mut Camera>,
-    player_query: Query<(&Id, &PlayerGuiCameraRef, &PlayerMainCameraRef), With<Player>>,
+    player_query: Query<(&Id, &PlayerMainCameraRef), With<Player>>,
     changed_window_query: Query<Entity, Changed<Window>>,
     primary_window_query: Query<Entity, With<PrimaryWindow>>,
     window_query: Query<&Window>,
@@ -49,32 +49,24 @@ pub fn sys_update_resized_camera_viewports(
     for changed_window_entity in changed_window_query.iter() {
         // (PlayerId, GuiCamera, MainCamera)
         let mut cameras_in_window = vec![];
-        for (player_id, gui_camera_ref, main_camera_ref) in player_query.iter() {
+        for (player_id, main_camera_ref) in player_query.iter() {
             let main_camera_entity = if let Some(entity) = main_camera_ref.try_get() { *entity } else { continue };
             let main_camera = if let Ok(camera) = camera_query.get(main_camera_entity) { camera } else { continue };
             let window_entity = Cameras::window_entity_from_camera(&main_camera, &primary_window_query);
-            if window_entity == changed_window_entity { cameras_in_window.push((player_id.get(), gui_camera_ref.try_get(), main_camera_entity)); }
+            if window_entity == changed_window_entity { cameras_in_window.push((player_id.get(), main_camera_entity)); }
         }
         
         let camera_count = cameras_in_window.len() as u32;
         if camera_count == 0 || camera_count > 4 { continue; }
-        cameras_in_window.sort_by_key(|(id, _, _)| { *id });
+        cameras_in_window.sort_by_key(|(id, _)| { *id });
         
         let window = if let Ok(window) = window_query.get(changed_window_entity) { window } else { continue };
         let physical_size = Vec2::new(window.resolution.physical_width() as f32, window.resolution.physical_height() as f32);
 
 
-        for (i, (player_id, gui_camera_ref, main_camera_entity)) in cameras_in_window.iter().copied().enumerate() {
+        for (i, (player_id, main_camera_entity)) in cameras_in_window.iter().copied().enumerate() {
             let viewport = get_splitscreen_viewport(i as u32, camera_count, physical_size, &splitscreen_settings);
-
-            let mut main_camera = camera_query.get_mut(main_camera_entity).unwrap();
-            main_camera.viewport = viewport.clone();
-
-            if let Some(gui_camera_entity) = gui_camera_ref {
-                if let Ok(mut gui_camera) = camera_query.get_mut(*gui_camera_entity) {
-                    gui_camera.viewport = viewport;
-                }
-            }
+            camera_query.get_mut(main_camera_entity).unwrap().viewport = viewport.clone();
         }
     }
 }

@@ -14,7 +14,7 @@ use bevy::{
     winit::WinitWindows,
     window::PrimaryWindow
 };
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
+// use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
 pub use bevy_rapier3d::prelude::*;
 pub use bevy_egui::*;
@@ -95,10 +95,10 @@ impl Plugin for TankPlugin {
             
             // Dev + Debug
             .add_plugins(WireframePlugin)
-            .add_plugins(WorldInspectorPlugin::default())
+            // .add_plugins(WorldInspectorPlugin::default())
 
             // UI
-            // .add_plugins(EguiPlugin)
+            .add_plugins(EguiPlugin)
 
             // Physics
             .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())

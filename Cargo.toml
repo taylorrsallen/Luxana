@@ -26,11 +26,12 @@ bevy_kira_audio = "0.18.0"
 # bevy_polyline = "0.7" # (Currently unused)
 
 # UI
-taffy = { version = "0.3.10" }
-bevy_egui = "0.23.0"
+# taffy = { version = "0.3.10" }
+bevy_egui = "0.23"
+# egui_extras = "0.24"
 
 # Debug
-bevy-inspector-egui = "0.21.0"
+# bevy-inspector-egui = "0.21.0"
 
 # Util
 num = "0.4"

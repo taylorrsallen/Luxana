@@ -50,11 +50,11 @@ impl<T: Default + Clone + Serialize + for<'a> Deserialize<'a> + std::fmt::Debug 
         if let Some(id) = self.asset_id_map.get(asset.as_ref()) { *id } else { 0 }
     }
 
-    pub fn asset_from_id(&self, id: usize) -> &T { &self.data[id] }
+    pub fn get(&self, id: usize) -> &T { &self.data[id] }
 
     /// Don't use this in performance critical areas
-    pub fn asset_from_name<S: AsRef<str>>(&self, asset: S) -> &T {
-        self.asset_from_id(self.id_from_name(asset) as usize)
+    pub fn get_from_name<S: AsRef<str>>(&self, asset: S) -> &T {
+        self.get(self.id_from_name(asset) as usize)
     }
 
     pub fn init(&mut self) {
@@ -224,11 +224,11 @@ impl<T: Default + Clone + TypePath + FromReflect + Sync + Send + 'static> Runtim
         if let Some(id) = self.asset_id_map.get(asset.as_ref()) { *id } else { 0 }
     }
 
-    pub fn asset_from_id(&self, id: usize) -> &T { &self.data[id] }
+    pub fn get(&self, id: usize) -> &T { &self.data[id] }
 
     /// Don't use this in performance critical areas
-    pub fn asset_from_name<S: AsRef<str>>(&self, asset: S) -> &T {
-        self.asset_from_id(self.id_from_name(asset) as usize)
+    pub fn get_from_name<S: AsRef<str>>(&self, asset: S) -> &T {
+        self.get(self.id_from_name(asset) as usize)
     }
 
     /// Will fail & return u16::MAX if `asset_name` already exists.

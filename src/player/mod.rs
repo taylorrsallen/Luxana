@@ -13,7 +13,6 @@ impl Plugin for TankPlayerPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<PrimaryPlayer>()
             .register_type::<Player>()
-            .register_type::<PlayerGuiCameraRef>()
             .register_type::<PlayerMainCameraRef>()
             .register_type::<PlayerSelector>()
             .register_type::<PlayerController>()
@@ -64,21 +63,6 @@ impl Player {
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Always a Camera2d. Used to display sprites on a specific render layer to be used as GUI.
-/// 
-/// Bevy's built in UI does not support multi-window, which is why sprites are used.
-/// 
-/// EGUI does support multi-window, and is used for text display, but it cannot display pixel perfect images.
-#[derive(Component, Default, Reflect)]
-#[reflect(Component)]
-pub struct PlayerGuiCameraRef(Option<Entity>);
-
-impl PlayerGuiCameraRef {
-    pub fn new(camera_2d: Option<Entity>) -> Self { Self { 0: camera_2d } }
-    pub fn try_get(&self) -> &Option<Entity> { &self.0 }
-    pub fn set(&mut self, camera_2d: Option<Entity>) { self.0 = camera_2d }
-}
-
 /// Can be Camera3d or Camera2d, as long as it's a camera.
 #[derive(Component, Default, Reflect)]
 #[reflect(Component)]
@@ -89,6 +73,12 @@ impl PlayerMainCameraRef {
     pub fn try_get(&self) -> &Option<Entity> { &self.0 }
     pub fn set(&mut self, camera: Option<Entity>) { self.0 = camera }
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// A list of the [GuiData] entities this [Player] is viewing
+#[derive(Component, Default, Deref, DerefMut, Debug, Reflect)]
+#[reflect(Component, Default)]
+pub struct PlayerGuiViewer(pub Vec<Entity>);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Collects entities the player has selected.
@@ -137,10 +127,8 @@ pub enum PlayerLookState {
 pub struct Players;
 impl Players {
     pub fn spawn_default_player(commands: &mut Commands) -> Entity {
-        let gui_camera_entity = commands.spawn(GuiCameraBundle::default()).id();
         let main_camera_entity = commands.spawn(MainCameraBundle::default()).id();
         commands.spawn(PlayerBundle::new(
-                Some(gui_camera_entity),
                 Some(main_camera_entity),
                 None,
                 None,
@@ -151,14 +139,9 @@ impl Players {
 
     pub fn despawn_player(
         player_entity: Entity,
-        gui_camera_ref_query: &Query<&PlayerGuiCameraRef>,
         main_camera_ref_query: &Query<&PlayerMainCameraRef>,
         commands: &mut Commands,
     ) {
-        if let Ok(gui_camera_ref) = gui_camera_ref_query.get(player_entity) {
-            if let Some(gui_camera) = gui_camera_ref.try_get() { commands.entity(*gui_camera).despawn_recursive(); }
-        }
-    
         if let Ok(main_camera_ref) = main_camera_ref_query.get(player_entity) {
             if let Some(main_camera) = main_camera_ref.try_get() { commands.entity(*main_camera).despawn_recursive(); }
         }
@@ -171,7 +154,6 @@ impl Players {
 #[derive(Bundle, Default)]
 pub struct PlayerBundle {
     pub player: Player,
-    pub player_gui_camera_ref: PlayerGuiCameraRef,
     pub player_main_camera_ref: PlayerMainCameraRef,
     pub player_look_state: PlayerLookState,
     pub player_controller: PlayerController,
@@ -185,14 +167,12 @@ pub struct PlayerBundle {
 
 impl PlayerBundle {
     pub fn new(
-        gui_camera: Option<Entity>,
         main_camera: Option<Entity>,
         controlled_entity: Option<Entity>,
         input_action_bindings: Option<InputActionBindings>,
         input_devices: &[InputDevice],
     ) -> Self {
         Self {
-            player_gui_camera_ref: PlayerGuiCameraRef::new(gui_camera),
             player_main_camera_ref: PlayerMainCameraRef::new(main_camera),
             player_controller: PlayerController::new(controlled_entity),
             input_action_bindings: if let Some(bindings) = input_action_bindings { bindings } else { InputActionBindings::default() },

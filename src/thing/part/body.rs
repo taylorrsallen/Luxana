@@ -79,7 +79,7 @@ impl BodyData {
         body_data.add_humanoid_limb_data(pelvis_body_part_id, 1, &model_prefix, "RLeg", parts_data);
 
         let stomach_part_id = parts_data.id_from_name(model_prefix.clone() + "Stomach");
-        let stomach_part_data = parts_data.asset_from_id(stomach_part_id as usize);
+        let stomach_part_data = parts_data.get(stomach_part_id as usize);
         let stomach_body_part_id = body_data.parts.len() as u8;
         body_data.parts.push(BodyPartData { part_id: stomach_part_id, connections: vec![] });
 
@@ -92,7 +92,7 @@ impl BodyData {
         }
         
         let chest_part_id = parts_data.id_from_name(model_prefix.clone() + "Chest");
-        let chest_part_data = parts_data.asset_from_id(chest_part_id as usize);
+        let chest_part_data = parts_data.get(chest_part_id as usize);
         let chest_body_part_id = body_data.parts.len() as u8;
         body_data.parts.push(BodyPartData { part_id: chest_part_id, connections: vec![] });
 
@@ -136,9 +136,9 @@ impl BodyData {
                         parts_data.id_from_name(model_prefix.clone() + limb_prefix + "Lower"),
                         parts_data.id_from_name(model_prefix.clone() + limb_prefix + "End")];
 
-        let part_data = [parts_data.asset_from_id(part_ids[0] as usize),
-                         parts_data.asset_from_id(part_ids[1] as usize),
-                         parts_data.asset_from_id(part_ids[2] as usize)];
+        let part_data = [parts_data.get(part_ids[0] as usize),
+                         parts_data.get(part_ids[1] as usize),
+                         parts_data.get(part_ids[2] as usize)];
 
         // 0: Parent to Upper
         // 1: Upper to Lower
