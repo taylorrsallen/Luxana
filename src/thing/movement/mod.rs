@@ -47,6 +47,9 @@ pub enum MoverStateFlags {
     #[default]
     /// Should movers apply forces that lock the Thing to the ground?
     Grounded = 1,
+    Swimming = 2,
+    Sliding  = 4,
+    Tumbling = 8,
 }
 
 #[derive(Component, Default, Debug, Reflect)]

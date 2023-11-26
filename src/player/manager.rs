@@ -64,24 +64,12 @@ pub fn sys_update_changed_player_cameras(
     mut commands: Commands,
     mut camera_query: Query<&mut Camera>,
     player_id_query: Query<&Id, With<Player>>,
-    changed_gui_camera_query: Query<(Entity, &PlayerGuiCameraRef), Changed<PlayerGuiCameraRef>>,
     changed_main_camera_query: Query<(Entity, &PlayerMainCameraRef), Changed<PlayerMainCameraRef>>,
 ) {
-    for (player_entity, gui_camera_ref) in changed_gui_camera_query.iter() {
-        let id = if let Ok(id) = player_id_query.get(player_entity) { id.get() } else { continue };
-        let camera_entity = if let Some(entity) = *gui_camera_ref.try_get() { entity } else { continue };
-        let mut camera = if let Ok(camera) = camera_query.get_mut(camera_entity) { camera } else { continue };
-
-        camera.order = id as isize + 16;
-        commands.entity(camera_entity).insert(RenderLayers::layer(id as u8 + 16));
-    }
-
     for (player_entity, main_camera_ref) in changed_main_camera_query.iter() {
         let id = if let Ok(id) = player_id_query.get(player_entity) { id.get() } else { continue };
-        let mut camera = if let Some(camera_entity) = *main_camera_ref.try_get() {
-                if let Ok(camera) = camera_query.get_mut(camera_entity) { camera } else { continue }
-            } else { continue };
-
+        let Some(camera_entity) = *main_camera_ref.try_get() else { continue };
+        let Ok(mut camera) = camera_query.get_mut(camera_entity) else { continue };
         camera.order = id as isize;
     }
 }
@@ -94,8 +82,7 @@ pub fn sys_update_primary_player_devices(
     removed_players: RemovedComponents<Player>,
 ) {
     if added_players.is_empty() && removed_players.is_empty() { return; }
-
-    let primary_player_entity = if let Ok(entity) = primary_player_query.get_single() { entity } else { return };
+    let Ok(primary_player_entity) = primary_player_query.get_single() else { return };
     let mut primary_receiver = InputDeviceReceiver::from_devices(&[
         InputDevice::Keyboard(0),
         InputDevice::Mouse(0),

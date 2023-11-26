@@ -84,18 +84,11 @@ pub enum GuiButtonState {
 }
 
 impl GuiButtonState {
-    fn try_set_selected(
-        &mut self,
-        released_this_update: bool,
-    ) {
+    fn try_set_selected(&mut self, released_this_update: bool) {
         if *self != GuiButtonState::Pressed && !released_this_update { *self = GuiButtonState::Selected; }
     }
 
-    fn try_set_pressed(
-        &mut self,
-        button_entity: Entity,
-        cursor: &mut GuiCursor,
-    ) {
+    fn try_set_pressed(&mut self, button_entity: Entity, cursor: &mut GuiCursor) {
         if cursor.previous_state() != GuiCursorState::Pressed {
             *self = GuiButtonState::Pressed;
             cursor.active_button = Some(button_entity);
@@ -117,16 +110,15 @@ impl GuiButtonState {
         button_action_events: &mut EventWriter<GuiButtonActionEvent>,
         button_action_query: &Query<&GuiButtonAction>,
     ) -> bool {
-        if let Some(active_button) = cursor.active_button {
-            if active_button == button_entity {
-                *self = GuiButtonState::Released;
+        let Some(active_button) = cursor.active_button else { return false };
+        if active_button == button_entity {
+            *self = GuiButtonState::Released;
 
-                if let Ok(button_action) = button_action_query.get(button_entity) {
-                    button_action_events.send(GuiButtonActionEvent { 0: button_entity });
-                }
-
-                return true;
+            if let Ok(button_action) = button_action_query.get(button_entity) {
+                button_action_events.send(GuiButtonActionEvent { 0: button_entity });
             }
+
+            return true;
         }
 
         false

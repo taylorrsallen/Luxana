@@ -60,41 +60,41 @@ impl GuiCollidingEntities {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 fn sys_update_collisions(
-    mut collision_events: EventWriter<GuiCollisionEvent>,
-    root_query: Query<(&GuiRoot, &GuiViewport, &Children)>,
-    cursor_query: Query<(Entity, &GuiCursor, &GuiCollidingEntities)>,
-    collider_query: Query<(&GuiInteractableCollider, &GuiPos, &GuiZLayer, &Transform), With<Parent>>,
-    primary_window_query: Query<Entity, With<PrimaryWindow>>,
-    camera_query: Query<(&Camera, &GlobalTransform), With<Camera2d>>,
+    // mut collision_events: EventWriter<GuiCollisionEvent>,
+    // root_query: Query<(&GuiData, &GuiViewport, &Children)>,
+    // cursor_query: Query<(Entity, &GuiCursor, &GuiCollidingEntities)>,
+    // collider_query: Query<(&GuiInteractableCollider, &GuiPos, &GuiZLayer, &Transform), With<Parent>>,
+    // primary_window_query: Query<Entity, With<PrimaryWindow>>,
+    // camera_query: Query<(&Camera, &GlobalTransform), With<Camera2d>>,
 ) {
-    for (cursor_entity, cursor, cursor_colliding_entities) in cursor_query.iter() {
-        let cursor_pos = if let Some(pos) = cursor.pos { pos } else { continue };
-        let gui_root_entity = if let Some(entity) = cursor.gui_root { entity } else { continue };
-        let (gui_root, gui_viewport, gui_children) = if let Ok(root) = root_query.get(gui_root_entity) { root } else { continue };
+    // for (cursor_entity, cursor, cursor_colliding_entities) in cursor_query.iter() {
+    //     let cursor_pos = if let Some(pos) = cursor.pos { pos } else { continue };
+    //     let gui_root_entity = if let Some(entity) = cursor.gui_root { entity } else { continue };
+    //     let (gui_root, gui_viewport, gui_children) = if let Ok(root) = root_query.get(gui_root_entity) { root } else { continue };
 
-        let mut colliding_entity = None;
-        let mut colliding_z_layer = i32::MIN;
+    //     let mut colliding_entity = None;
+    //     let mut colliding_z_layer = i32::MIN;
 
-        for child_entity in gui_children.iter() {
-            let (collider, pos, z_layer, transform) = if let Ok(child) = collider_query.get(*child_entity) { child } else { continue };
-            if z_layer.get() <= colliding_z_layer { continue; }
-            if !collider.is_point_colliding(cursor_pos, pos.as_px_vec2(gui_viewport.get()), &transform.scale) { continue; }
-            colliding_entity = Some(*child_entity);
-            colliding_z_layer = z_layer.get();
-        }
+    //     for child_entity in gui_children.iter() {
+    //         let (collider, pos, z_layer, transform) = if let Ok(child) = collider_query.get(*child_entity) { child } else { continue };
+    //         if z_layer.get() <= colliding_z_layer { continue; }
+    //         if !collider.is_point_colliding(cursor_pos, pos.as_px_vec2(gui_viewport.get()), &transform.scale) { continue; }
+    //         colliding_entity = Some(*child_entity);
+    //         colliding_z_layer = z_layer.get();
+    //     }
         
-        if let Some(new_colliding_entity) = colliding_entity {
-            for existing_colliding_entity in cursor_colliding_entities.iter() {
-                if new_colliding_entity != existing_colliding_entity { collision_events.send(GuiCollisionEvent::Stopped(cursor_entity, existing_colliding_entity)); }
-            }
+    //     if let Some(new_colliding_entity) = colliding_entity {
+    //         for existing_colliding_entity in cursor_colliding_entities.iter() {
+    //             if new_colliding_entity != existing_colliding_entity { collision_events.send(GuiCollisionEvent::Stopped(cursor_entity, existing_colliding_entity)); }
+    //         }
             
-            collision_events.send(GuiCollisionEvent::Started(cursor_entity, new_colliding_entity));
-        } else {
-            for existing_colliding_entity in cursor_colliding_entities.iter() {
-                collision_events.send(GuiCollisionEvent::Stopped(cursor_entity, existing_colliding_entity));
-            }
-        }
-    }
+    //         collision_events.send(GuiCollisionEvent::Started(cursor_entity, new_colliding_entity));
+    //     } else {
+    //         for existing_colliding_entity in cursor_colliding_entities.iter() {
+    //             collision_events.send(GuiCollisionEvent::Stopped(cursor_entity, existing_colliding_entity));
+    //         }
+    //     }
+    // }
 }
 
 fn evsys_update_gui_colliding_entities(
